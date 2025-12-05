@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Renderer Test</title>
+  <style>
+    body {
+      padding: 40px;
+      font-family: system-ui;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .test {
+      margin: 30px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+    .test h3 {
+      margin-top: 0;
+      color: #333;
+    }
+    .input-container {
+      margin: 15px 0;
+    }
+    input {
+      padding: 12px;
+      width: 100%;
+      box-sizing: border-box;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    .controls {
+      margin: 15px 0;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 8px 16px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      background: white;
+      border-radius: 4px;
+    }
+    button:hover {
+      background: #f0f0f0;
+    }
+    .info {
+      font-size: 12px;
+      color: #666;
+      margin-top: 10px;
+      font-family: monospace;
+    }
+    .flex-test {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .flex-test input {
+      flex: 1;
+    }
+    .grid-test {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Ghost Renderer Test</h1>
+  <p>Tests for pixel-perfect ghost text overlay</p>
+
+  <div class="test">
+    <h3>Test 1: Basic Ghost Text</h3>
+    <div class="input-container">
+      <input id="test1" type="text" placeholder="Type 'hello' and watch...">
+    </div>
+    <div class="controls">
+      <button onclick="showGhost('test1', ' world!')">Show Ghost</button>
+      <button onclick="hideGhost('test1')">Hide Ghost</button>
+      <button onclick="destroyRenderer('test1')">Destroy</button>
+      <button onclick="recreateRenderer('test1')">Recreate</button>
+    </div>
+    <div class="info" id="info1"></div>
+  </div>
+
+  <div class="test">
+    <h3>Test 2: Different Font Sizes</h3>
+    <div class="input-container">
+      <input id="test2" type="text" style="font-size: 24px; padding: 16px;" placeholder="Large text">
+    </div>
+    <div class="controls">
+      <button onclick="showGhost('test2', ' suggestion!')">Show Ghost</button>
+      <button onclick="hideGhost('test2')">Hide Ghost</button>
+    </div>
+  </div>
+
+  <div class="test">
+    <h3>Test 3: Different Fonts</h3>
+    <div class="input-container">
+      <input id="test3" type="text" style="font-family: monospace; letter-spacing: 2px;" placeholder="Monospace font">
+    </div>
+    <div class="controls">
+      <button onclick="showGhost('test3', ' code')">Show Ghost</button>
+      <button onclick="hideGhost('test3')">Hide Ghost</button>
+    </div>
+  </div>
+
+  <div class="test">
+    <h3>Test 4: Heavy Padding</h3>
+    <div class="input-container">
+      <input id="test4" type="text" style="padding: 20px 30px;" placeholder="Heavy padding">
+    </div>
+    <div class="controls">
+      <button onclick="showGhost('test4', ' text')">Show Ghost</button>
+      <button onclick="hideGhost('test4')">Hide Ghost</button>
+    </div>
+  </div>
+
+  <div class="test">
+    <h3>Test 5: Flex Layout</h3>
+    <div class="flex-test">
+      <span>Label:</span>
+      <input id="test5" type="text" placeholder="In flex container">
+      <button onclick="showGhost('test5', ' flex!')">Ghost</button>
+    </div>
+    <div class="info">Should not break flex layout</div>
+  </div>
+
+  <div class="test">
+    <h3>Test 6: Grid Layout</h3>
+    <div class="grid-test">
+      <input id="test6a" type="text" placeholder="Grid cell 1">
+      <input id="test6b" type="text" placeholder="Grid cell 2">
+    </div>
+    <div class="controls">
+      <button onclick="showGhost('test6a', ' grid1')">Ghost Cell 1</button>
+      <button onclick="showGhost('test6b', ' grid2')">Ghost Cell 2</button>
+    </div>
+    <div class="info">Should not break grid layout</div>
+  </div>
+
+  <div class="test">
+    <h3>Test 7: Dynamic Cursor Position</h3>
+    <div class="input-container">
+      <input id="test7" type="text" value="hello world testing" placeholder="Move cursor">
+    </div>
+    <div class="controls">
+      <button onclick="updateGhostAtCursor('test7')">Update at Cursor</button>
+      <button onclick="hideGhost('test7')">Hide</button>
+    </div>
+    <div class="info">Move cursor, then click "Update at Cursor"</div>
+  </div>
+
+  <div class="test">
+    <h3>Test 8: Resize Observer</h3>
+    <div class="input-container">
+      <input id="test8" type="text" placeholder="Resize test">
+    </div>
+    <div class="controls">
+      <button onclick="showGhost('test8', ' resized!')">Show Ghost</button>
+      <button onclick="resizeInput('test8', 'small')">Small</button>
+      <button onclick="resizeInput('test8', 'medium')">Medium</button>
+      <button onclick="resizeInput('test8', 'large')">Large</button>
+    </div>
+    <div class="info">Ghost should update when input resizes</div>
+  </div>
+
+  <script type="module">
+    import { GhostRenderer } from './packages/core/dist/index.js'
+
+    const renderers = new Map()
+
+    function getOrCreateRenderer(id) {
+      if (!renderers.has(id)) {
+        const input = document.getElementById(id)
+        const renderer = new GhostRenderer(input)
+        renderers.set(id, renderer)
+        updateInfo(id, 'Renderer created')
+      }
+      return renderers.get(id)
+    }
+
+    function updateInfo(id, message) {
+      const infoEl = document.getElementById(`info${id.replace(/\D/g, '')}`)
+      if (infoEl) {
+        infoEl.textContent = `[${new Date().toLocaleTimeString()}] ${message}`
+      }
+    }
+
+    window.showGhost = function(id, suggestionText) {
+      const input = document.getElementById(id)
+      const renderer = getOrCreateRenderer(id)
+      const cursorPos = input.selectionStart || input.value.length
+      renderer.render(input.value, cursorPos, suggestionText)
+      updateInfo(id, `Ghost shown: "${suggestionText}" at pos ${cursorPos}`)
+    }
+
+    window.hideGhost = function(id) {
+      const renderer = renderers.get(id)
+      if (renderer) {
+        const input = document.getElementById(id)
+        renderer.render(input.value, input.value.length, null)
+        updateInfo(id, 'Ghost hidden')
+      }
+    }
+
+    window.destroyRenderer = function(id) {
+      const renderer = renderers.get(id)
+      if (renderer) {
+        renderer.destroy()
+        renderers.delete(id)
+        updateInfo(id, 'Renderer destroyed')
+      }
+    }
+
+    window.recreateRenderer = function(id) {
+      window.destroyRenderer(id)
+      getOrCreateRenderer(id)
+      updateInfo(id, 'Renderer recreated')
+    }
+
+    window.updateGhostAtCursor = function(id) {
+      const input = document.getElementById(id)
+      const renderer = getOrCreateRenderer(id)
+      const cursorPos = input.selectionStart || 0
+      renderer.render(input.value, cursorPos, ' [GHOST]')
+      updateInfo(id, `Ghost at cursor position ${cursorPos}`)
+    }
+
+    window.resizeInput = function(id, size) {
+      const input = document.getElementById(id)
+      const sizes = {
+        small: '12px',
+        medium: '16px',
+        large: '24px'
+      }
+      input.style.fontSize = sizes[size]
+      updateInfo(id, `Resized to ${size} (${sizes[size]})`)
+    }
+
+    // Auto-create renderers for tests 1-4 on load
+    ;['test1', 'test2', 'test3', 'test4'].forEach(id => {
+      const input = document.getElementById(id)
+      input.addEventListener('input', () => {
+        const renderer = getOrCreateRenderer(id)
+        renderer.render(input.value, input.selectionStart || 0, null)
+      })
+    })
+
+    console.log('Renderer test ready. Use buttons to test ghost text rendering.')
+  </script>
+</body>
+</html>
