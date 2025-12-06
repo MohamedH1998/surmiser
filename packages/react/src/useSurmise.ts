@@ -1,19 +1,77 @@
-// useSurmise hook - will implement in Phase 6
-import { useCallback, useState } from 'react'
-import type { SurmiseProvider, Suggestion } from '@surmise/core'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { attachSurmise } from '@surmise/core'
+import type { Suggestion } from '@surmise/core'
+import { useSurmiseContext } from './SurmiseProvider'
 
 interface UseSurmiseOptions {
-  provider?: SurmiseProvider | SurmiseProvider[]
   debounceMs?: number
   minConfidence?: number
   onAccept?: (s: Suggestion) => void
+  /** For controlled components: pass value to sync when it changes programmatically */
+  value?: string
 }
 
-export function useSurmise(_options: UseSurmiseOptions = {}) {
-  const [suggestion] = useState<Suggestion | null>(null)
+/**
+ * Primary API for composing autocomplete into your own components.
+ *
+ * @example
+ * ```tsx
+ * function EmailInput(props) {
+ *   const { attachRef } = useSurmise()
+ *   return <YourCustomInput ref={attachRef} {...props} />
+ * }
+ * ```
+ *
+ * Works with any input component (shadcn, Radix, custom, etc.)
+ */
+export function useSurmise(options: UseSurmiseOptions = {}) {
+  const context = useSurmiseContext()
+  const [suggestion, setSuggestion] = useState<Suggestion | null>(null)
+  const detachRef = useRef<(() => void) | null>(null)
+  const onAcceptRef = useRef(options.onAccept)
+  const inputRef = useRef<HTMLInputElement | null>(null)
 
-  const attachRef = useCallback((_node: HTMLInputElement | null) => {
-    // TODO: Phase 6
+  if (!context) {
+    throw new Error('useSurmise must be used within a SurmiseProvider')
+  }
+
+  // Keep callback ref up to date (no effect needed - refs don't trigger re-renders)
+  onAcceptRef.current = options.onAccept
+
+  // Sync when controlled value changes
+  useEffect(() => {
+    if (options.value !== undefined && inputRef.current) {
+      // Trigger input event to re-render
+      const event = new Event('input', { bubbles: true })
+      inputRef.current.dispatchEvent(event)
+    }
+  }, [options.value])
+
+  const attachRef = useCallback((node: HTMLInputElement | null) => {
+    // Cleanup previous attachment
+    detachRef.current?.()
+    inputRef.current = node
+
+    if (node) {
+      const providers = context.providers
+      const debounceMs = options.debounceMs ?? context.debounceMs
+      const minConfidence = options.minConfidence ?? context.minConfidence
+
+      detachRef.current = attachSurmise(node, {
+        providers,
+        debounceMs,
+        minConfidence,
+        onSuggestion: setSuggestion,
+        onAccept: (s) => {
+          setSuggestion(null)
+          onAcceptRef.current?.(s)
+        }
+      })
+    }
+  }, [options.debounceMs, options.minConfidence, context])
+
+  useEffect(() => {
+    return () => detachRef.current?.()
   }, [])
 
   return { attachRef, suggestion }

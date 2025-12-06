@@ -6,6 +6,7 @@ export class GhostRenderer {
   private originalParent: HTMLElement
   private originalNextSibling: Node | null
   private resizeObserver: ResizeObserver
+  private scrollHandler: () => void
 
   constructor(private inputEl: HTMLInputElement) {
     this.originalParent = inputEl.parentElement!
@@ -21,6 +22,11 @@ export class GhostRenderer {
       this.wrapper.style.width = inputEl.style.width
     }
 
+    // Ensure input is on top with transparent background
+    inputEl.style.position = 'relative'
+    inputEl.style.zIndex = '1'
+    inputEl.style.background = 'transparent'
+
     // Create ghost overlay
     this.ghost = document.createElement('div')
     this.ghost.setAttribute('aria-hidden', 'true')
@@ -31,9 +37,9 @@ export class GhostRenderer {
       right: 0;
       bottom: 0;
       pointer-events: none;
-      white-space: pre;
       overflow: hidden;
       border-color: transparent;
+      z-index: 0;
     `
 
     // Prefix span (invisible)
@@ -71,6 +77,10 @@ export class GhostRenderer {
     // Watch for resize
     this.resizeObserver = new ResizeObserver(() => this.syncStyles())
     this.resizeObserver.observe(inputEl)
+
+    // Sync scroll position
+    this.scrollHandler = () => this.syncScroll()
+    inputEl.addEventListener('scroll', this.scrollHandler)
   }
 
   syncStyles(): void {
@@ -100,12 +110,22 @@ export class GhostRenderer {
       'margin-bottom',
       'margin-left',
       'box-sizing',
-      'text-align'
+      'text-align',
+      'background',
+      'background-color',
+      'text-transform',
+      'white-space'
     ]
 
     styles.forEach(prop => {
       this.ghost.style[prop as any] = computed[prop as any]
     })
+
+    this.syncScroll()
+  }
+
+  syncScroll(): void {
+    this.ghost.scrollLeft = this.inputEl.scrollLeft
   }
 
   render(text: string, cursorPos: number, suggestionText: string | null): void {
@@ -115,12 +135,16 @@ export class GhostRenderer {
     }
 
     this.ghost.style.display = 'block'
-    this.prefix.textContent = text.slice(0, cursorPos)
+
+    // Replace trailing spaces with non-breaking spaces to preserve width
+    const prefixText = text.slice(0, cursorPos).replace(/\s+$/, (spaces) => '\u00A0'.repeat(spaces.length))
+    this.prefix.textContent = prefixText
     this.suggestion.textContent = suggestionText
   }
 
   destroy(): void {
     this.resizeObserver.disconnect()
+    this.inputEl.removeEventListener('scroll', this.scrollHandler)
     this.originalParent.insertBefore(this.inputEl, this.originalNextSibling)
     this.wrapper.remove()
   }

@@ -28,6 +28,9 @@ export function attachSurmise(
   const onInput = () => {
     if (isComposing) return
 
+    // Clear ghost immediately for instant feedback
+    renderer.render(inputEl.value, inputEl.selectionStart || 0, null)
+
     const value = inputEl.value
     const cursorPos = inputEl.selectionStart || 0
     const ctx = buildContext(value, cursorPos)
@@ -78,6 +81,10 @@ export function attachSurmise(
 
     inputEl.value = newValue
     inputEl.setSelectionRange(newValue.length, newValue.length)
+
+    // Force scroll to cursor
+    inputEl.blur()
+    inputEl.focus()
 
     // Trigger input event for controlled components
     inputEl.dispatchEvent(new Event('input', { bubbles: true }))
