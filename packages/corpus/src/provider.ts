@@ -2,7 +2,7 @@ import type {
   SurmiseProvider,
   SuggestionContext,
   Suggestion,
-} from "@surmise/core";
+} from "surmise";
 import { normalizeText, tokenize } from "./tokenizer";
 import { defaultCorpus } from "./default-corpus";
 

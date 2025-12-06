@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { attachSurmise } from '@surmise/core'
-import type { Suggestion } from '@surmise/core'
+import { attachSurmise } from '../attach'
+import type { Suggestion } from '../types'
 import { useSurmiseContext } from './SurmiseProvider'
 
 interface UseSurmiseOptions {

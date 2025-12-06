@@ -17,8 +17,17 @@
   "scripts": {
     "build": "tsup"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MohamedH1998/surmise.git",
+    "directory": "packages/corpus"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
-    "@surmise/core": "workspace:*"
+    "surmise": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.0.0",

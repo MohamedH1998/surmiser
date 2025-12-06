@@ -1,5 +1,5 @@
 {
-  "name": "@surmise/react",
+  "name": "surmise",
   "version": "0.0.1",
   "type": "module",
   "main": "./dist/index.js",
@@ -9,6 +9,10 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./react": {
+      "import": "./dist/react.js",
+      "types": "./dist/react.d.ts"
     }
   },
   "files": [
@@ -17,12 +21,22 @@
   "scripts": {
     "build": "tsup"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MohamedH1998/surmise.git",
+    "directory": "packages/surmise"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "peerDependencies": {
     "react": "^18.0.0"
   },
-  "dependencies": {
-    "@surmise/core": "workspace:*",
-    "@surmise/corpus": "workspace:*"
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/react": "^18.2.0",
