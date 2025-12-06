@@ -1,11 +1,11 @@
-import type { SuggestionContext, Suggestion, SurmiseOptions } from './types'
+import type { SuggestionContext, Suggestion, ClozeOptions } from './types'
 
-export class SurmiseEngine {
+export class ClozeEngine {
   private abortController: AbortController | null = null
   private debounceTimer: ReturnType<typeof setTimeout> | null = null
   private currentSuggestion: Suggestion | null = null
 
-  constructor(private options: SurmiseOptions) {}
+  constructor(private options: ClozeOptions) {}
 
   requestSuggestion(ctx: SuggestionContext): void {
     this.cancel()

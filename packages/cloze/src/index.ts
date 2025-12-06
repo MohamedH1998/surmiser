@@ -1,4 +1,4 @@
-// @surmise/core - Core autocomplete engine
+// @cloze/core - Core autocomplete engine
 export * from './types'
 export * from './context'
 export * from './engine'

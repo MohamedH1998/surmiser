@@ -12,20 +12,7 @@ importers:
         specifier: ^5.3.0
         version: 5.9.3
 
-  packages/corpus:
-    dependencies:
-      surmise:
-        specifier: workspace:*
-        version: link:../surmise
-    devDependencies:
-      tsup:
-        specifier: ^8.0.0
-        version: 8.5.1(typescript@5.9.3)
-      typescript:
-        specifier: ^5.3.0
-        version: 5.9.3
-
-  packages/surmise:
+  packages/cloze:
     devDependencies:
       '@types/react':
         specifier: ^18.2.0
@@ -33,6 +20,19 @@ importers:
       react:
         specifier: ^18.2.0
         version: 18.3.1
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(typescript@5.9.3)
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
+
+  packages/corpus:
+    dependencies:
+      cloze:
+        specifier: workspace:*
+        version: link:../cloze
+    devDependencies:
       tsup:
         specifier: ^8.0.0
         version: 8.5.1(typescript@5.9.3)

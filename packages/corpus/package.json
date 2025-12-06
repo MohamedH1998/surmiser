@@ -1,5 +1,5 @@
 {
-  "name": "@surmise/corpus",
+  "name": "cloze-corpus",
   "version": "0.0.1",
   "type": "module",
   "main": "./dist/index.js",
@@ -19,15 +19,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/MohamedH1998/surmise.git",
+    "url": "https://github.com/MohamedH1998/cloze.git",
     "directory": "packages/corpus"
   },
   "license": "MIT",
-  "publishConfig": {
-    "access": "public"
-  },
   "dependencies": {
-    "surmise": "workspace:*"
+    "cloze": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.0.0",

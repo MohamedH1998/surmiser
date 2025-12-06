@@ -1,12 +1,12 @@
 import type {
-  SurmiseProvider,
+  ClozeProvider,
   SuggestionContext,
   Suggestion,
-} from "surmise";
+} from "cloze";
 import { normalizeText, tokenize } from "./tokenizer";
 import { defaultCorpus } from "./default-corpus";
 
-export function localPredictive(phrases: string[] = defaultCorpus): SurmiseProvider {
+export function localPredictive(phrases: string[] = defaultCorpus): ClozeProvider {
   const normalizedPhrases = phrases.map((p) => normalizeText(p));
 
   return {

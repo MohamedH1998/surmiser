@@ -1,7 +1,7 @@
 import { forwardRef, useCallback } from 'react'
-import { useSurmise } from './useSurmise'
+import { useCloze } from './useCloze'
 
-interface SurmiseInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface ClozeInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   debounceMs?: number
   minConfidence?: number
 }
@@ -9,21 +9,21 @@ interface SurmiseInputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 /**
  * Convenience component for quick start.
  *
- * For composition with your own components, use `useSurmise()` hook instead.
+ * For composition with your own components, use `useCloze()` hook instead.
  *
  * @example
  * ```tsx
  * // Quick start
- * <SurmiseInput placeholder="Email..." />
+ * <ClozeInput placeholder="Email..." />
  *
  * // For composition - use the hook
- * const { attachRef } = useSurmise()
+ * const { attachRef } = useCloze()
  * <YourInput ref={attachRef} />
  * ```
  */
-export const SurmiseInput = forwardRef<HTMLInputElement, SurmiseInputProps>(
+export const ClozeInput = forwardRef<HTMLInputElement, ClozeInputProps>(
   ({ debounceMs, minConfidence, value, ...props }, ref) => {
-    const { attachRef } = useSurmise({
+    const { attachRef } = useCloze({
       debounceMs,
       minConfidence,
       value: typeof value === 'string' ? value : undefined
@@ -45,4 +45,4 @@ export const SurmiseInput = forwardRef<HTMLInputElement, SurmiseInputProps>(
   }
 )
 
-SurmiseInput.displayName = 'SurmiseInput'
+ClozeInput.displayName = 'ClozeInput'

@@ -1,13 +1,13 @@
-import { SurmiseEngine } from './engine'
+import { ClozeEngine } from './engine'
 import { GhostRenderer } from './renderer'
 import { buildContext } from './context'
-import type { SurmiseOptions, Suggestion } from './types'
+import type { ClozeOptions, Suggestion } from './types'
 
-export function attachSurmise(
+export function attachCloze(
   inputEl: HTMLInputElement,
-  options: SurmiseOptions
+  options: ClozeOptions
 ): () => void {
-  const engine = new SurmiseEngine({
+  const engine = new ClozeEngine({
     ...options,
     onSuggestion: (suggestion) => {
       if (!isComposing) {

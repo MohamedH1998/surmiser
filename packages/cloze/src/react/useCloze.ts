@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { attachSurmise } from '../attach'
+import { attachCloze } from '../attach'
 import type { Suggestion } from '../types'
-import { useSurmiseContext } from './SurmiseProvider'
+import { useClozeContext } from './ClozeProvider'
 
-interface UseSurmiseOptions {
+interface UseClozeOptions {
   debounceMs?: number
   minConfidence?: number
   onAccept?: (s: Suggestion) => void
@@ -17,22 +17,22 @@ interface UseSurmiseOptions {
  * @example
  * ```tsx
  * function EmailInput(props) {
- *   const { attachRef } = useSurmise()
+ *   const { attachRef } = useCloze()
  *   return <YourCustomInput ref={attachRef} {...props} />
  * }
  * ```
  *
  * Works with any input component (shadcn, Radix, custom, etc.)
  */
-export function useSurmise(options: UseSurmiseOptions = {}) {
-  const context = useSurmiseContext()
+export function useCloze(options: UseClozeOptions = {}) {
+  const context = useClozeContext()
   const [suggestion, setSuggestion] = useState<Suggestion | null>(null)
   const detachRef = useRef<(() => void) | null>(null)
   const onAcceptRef = useRef(options.onAccept)
   const inputRef = useRef<HTMLInputElement | null>(null)
 
   if (!context) {
-    throw new Error('useSurmise must be used within a SurmiseProvider')
+    throw new Error('useCloze must be used within a ClozeProvider')
   }
 
   // Keep callback ref up to date (no effect needed - refs don't trigger re-renders)
@@ -57,7 +57,7 @@ export function useSurmise(options: UseSurmiseOptions = {}) {
       const debounceMs = options.debounceMs ?? context.debounceMs
       const minConfidence = options.minConfidence ?? context.minConfidence
 
-      detachRef.current = attachSurmise(node, {
+      detachRef.current = attachCloze(node, {
         providers,
         debounceMs,
         minConfidence,

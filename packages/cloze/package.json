@@ -1,5 +1,5 @@
 {
-  "name": "surmise",
+  "name": "cloze",
   "version": "0.0.1",
   "type": "module",
   "main": "./dist/index.js",
@@ -23,8 +23,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/MohamedH1998/surmise.git",
-    "directory": "packages/surmise"
+    "url": "https://github.com/MohamedH1998/cloze.git",
+    "directory": "packages/cloze"
   },
   "license": "MIT",
   "publishConfig": {
