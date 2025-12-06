@@ -1,4 +1,3 @@
-// Context builder - will implement in Phase 2
 import type { SuggestionContext } from './types'
 
 export function buildContext(value: string, cursorPos: number): SuggestionContext {

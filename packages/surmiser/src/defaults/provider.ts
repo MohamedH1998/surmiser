@@ -1,14 +1,11 @@
-import type {
-  SurmiserProvider,
-  SuggestionContext,
-  Suggestion,
-} from "surmiser";
+import type { SurmiserProvider, SuggestionContext, Suggestion } from "../types";
 import { normalizeText, tokenize } from "./tokenizer";
 import { defaultCorpus } from "./default-corpus";
 
-export function localPredictive(phrases: string[] = defaultCorpus): SurmiserProvider {
+export function localPredictive(
+  phrases: string[] = defaultCorpus
+): SurmiserProvider {
   const normalizedPhrases = phrases.map((p) => normalizeText(p));
-
   return {
     id: "local-predictive",
     priority: 10,
@@ -82,7 +79,9 @@ export function localPredictive(phrases: string[] = defaultCorpus): SurmiserProv
           if (phrasePrefix === inputPrefix && phraseTokens.length > matchLen) {
             const remainingTokens = phraseTokens.slice(matchLen);
 
-            const suggestion = hasTrailingSpace ? remainingTokens.join(" ") : " " + remainingTokens.join(" ");
+            const suggestion = hasTrailingSpace
+              ? remainingTokens.join(" ")
+              : " " + remainingTokens.join(" ");
             const confidence = matchLen >= 3 ? 95 : matchLen >= 2 ? 90 : 80;
 
             // Keep best match (prefer longer matches)
@@ -91,15 +90,15 @@ export function localPredictive(phrases: string[] = defaultCorpus): SurmiserProv
             }
           }
         }
+      }
 
-        // Return best match for this matchLen before trying shorter
-        if (bestMatch) {
-          return {
-            text: bestMatch.text,
-            confidence: bestMatch.confidence,
-            providerId: "local-predictive",
-          };
-        }
+      // Return best match for this matchLen before trying shorter
+      if (bestMatch) {
+        return {
+          text: bestMatch.text,
+          confidence: bestMatch.confidence,
+          providerId: "local-predictive",
+        };
       }
 
       return null;

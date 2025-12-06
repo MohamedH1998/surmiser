@@ -1,4 +1,3 @@
-// Core types - will implement in Phase 2
 export interface SuggestionContext {
   text: string
   cursorPosition: number

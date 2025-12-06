@@ -1,6 +1,6 @@
 {
   "name": "surmiser",
-  "version": "0.0.1",
+  "version": "0.0.1-alpha.1",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -13,6 +13,10 @@
     "./react": {
       "import": "./dist/react.js",
       "types": "./dist/react.d.ts"
+    },
+    "./corpora": {
+      "import": "./dist/corpora.js",
+      "types": "./dist/corpora.d.ts"
     }
   },
   "files": [

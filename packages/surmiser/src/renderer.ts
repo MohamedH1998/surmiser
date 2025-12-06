@@ -1,151 +1,139 @@
 export class GhostRenderer {
-  private wrapper: HTMLDivElement
-  private ghost: HTMLDivElement
-  private prefix: HTMLSpanElement
-  private suggestion: HTMLSpanElement
-  private originalParent: HTMLElement
-  private originalNextSibling: Node | null
-  private resizeObserver: ResizeObserver
-  private scrollHandler: () => void
+  private ghost: HTMLDivElement;
+  private prefix: HTMLSpanElement;
+  private suggestion: HTMLSpanElement;
+  private resizeObserver: ResizeObserver;
+  private scrollHandler: () => void;
+  private windowResizeHandler: () => void;
 
   constructor(private inputEl: HTMLInputElement) {
-    this.originalParent = inputEl.parentElement!
-    this.originalNextSibling = inputEl.nextSibling
-
-    // Create wrapper
-    this.wrapper = document.createElement('div')
-    const inputDisplay = window.getComputedStyle(inputEl).display
-    this.wrapper.style.cssText = `position: relative; display: ${inputDisplay === 'block' ? 'block' : 'inline-block'};`
-
-    // Match width behavior
-    if (inputEl.style.width) {
-      this.wrapper.style.width = inputEl.style.width
-    }
-
-    // Ensure input is on top with transparent background
-    inputEl.style.position = 'relative'
-    inputEl.style.zIndex = '1'
-    inputEl.style.background = 'transparent'
-
-    // Create ghost overlay
-    this.ghost = document.createElement('div')
-    this.ghost.setAttribute('aria-hidden', 'true')
+    // Create ghost overlay attached to body to avoid disturbing React DOM
+    this.ghost = document.createElement("div");
+    this.ghost.setAttribute("aria-hidden", "true");
     this.ghost.style.cssText = `
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
       pointer-events: none;
       overflow: hidden;
       border-color: transparent;
-      z-index: 0;
-    `
+      z-index: 9999;
+      background: transparent;
+    `;
 
     // Prefix span (invisible)
-    this.prefix = document.createElement('span')
-    this.prefix.style.cssText = 'opacity: 0;'
+    this.prefix = document.createElement("span");
+    this.prefix.style.cssText = "opacity: 0;";
 
     // Suggestion span (visible, gray)
-    this.suggestion = document.createElement('span')
-    this.suggestion.style.cssText = 'color: #999;'
+    this.suggestion = document.createElement("span");
+    this.suggestion.style.cssText = "color: #999;";
 
-    this.ghost.appendChild(this.prefix)
-    this.ghost.appendChild(this.suggestion)
+    this.ghost.appendChild(this.prefix);
+    this.ghost.appendChild(this.suggestion);
 
-    // Save focus state
-    const isFocused = document.activeElement === inputEl
-    const selectionStart = inputEl.selectionStart
-    const selectionEnd = inputEl.selectionEnd
-
-    // Insert wrapper
-    this.originalParent.insertBefore(this.wrapper, inputEl)
-    this.wrapper.appendChild(inputEl)
-    this.wrapper.appendChild(this.ghost)
-
-    // Restore focus state
-    if (isFocused) {
-      inputEl.focus()
-      if (typeof selectionStart === 'number' && typeof selectionEnd === 'number') {
-        inputEl.setSelectionRange(selectionStart, selectionEnd)
-      }
-    }
+    document.body.appendChild(this.ghost);
 
     // Sync styles
-    this.syncStyles()
+    this.syncStyles();
+    this.syncPosition();
 
-    // Watch for resize
-    this.resizeObserver = new ResizeObserver(() => this.syncStyles())
-    this.resizeObserver.observe(inputEl)
+    // Watch for resize of input
+    this.resizeObserver = new ResizeObserver(() => {
+      this.syncStyles();
+      this.syncPosition();
+    });
+    this.resizeObserver.observe(inputEl);
 
     // Sync scroll position
-    this.scrollHandler = () => this.syncScroll()
-    inputEl.addEventListener('scroll', this.scrollHandler)
+    this.scrollHandler = () => {
+      this.syncScroll();
+      // Also sync position in case input moved due to parent scroll
+      this.syncPosition();
+    };
+    // We need to listen to window scroll too to keep position fixed absolute
+    this.windowResizeHandler = () => this.syncPosition();
+
+    inputEl.addEventListener("scroll", this.scrollHandler);
+    window.addEventListener("resize", this.windowResizeHandler);
+    window.addEventListener("scroll", this.windowResizeHandler, true); // Capture to catch all scrolls
   }
 
   syncStyles(): void {
-    const computed = window.getComputedStyle(this.inputEl)
+    const computed = window.getComputedStyle(this.inputEl);
 
     const styles = [
-      'font-family',
-      'font-size',
-      'font-weight',
-      'font-style',
-      'letter-spacing',
-      'line-height',
-      'padding-top',
-      'padding-right',
-      'padding-bottom',
-      'padding-left',
-      'border-top-width',
-      'border-right-width',
-      'border-bottom-width',
-      'border-left-width',
-      'border-top-style',
-      'border-right-style',
-      'border-bottom-style',
-      'border-left-style',
-      'margin-top',
-      'margin-right',
-      'margin-bottom',
-      'margin-left',
-      'box-sizing',
-      'text-align',
-      'background',
-      'background-color',
-      'text-transform',
-      'white-space'
-    ]
+      "font-family",
+      "font-size",
+      "font-weight",
+      "font-style",
+      "letter-spacing",
+      "line-height",
+      "padding-top",
+      "padding-right",
+      "padding-bottom",
+      "padding-left",
+      "border-top-width",
+      "border-right-width",
+      "border-bottom-width",
+      "border-left-width",
+      "border-top-style",
+      "border-right-style",
+      "border-bottom-style",
+      "border-left-style",
+      "box-sizing",
+      "text-align",
+      "text-transform",
+      "white-space",
+    ];
 
-    styles.forEach(prop => {
-      this.ghost.style[prop as any] = computed[prop as any]
-    })
+    styles.forEach((prop) => {
+      this.ghost.style[prop as any] = computed[prop as any];
+    });
 
-    this.syncScroll()
+    // Explicitly transparent background/border for ghost
+    this.ghost.style.backgroundColor = "transparent";
+    this.ghost.style.borderColor = "transparent";
+
+    this.syncScroll();
+  }
+
+  syncPosition(): void {
+    const rect = this.inputEl.getBoundingClientRect();
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+
+    this.ghost.style.top = `${rect.top + scrollY}px`;
+    this.ghost.style.left = `${rect.left + scrollX}px`;
+    this.ghost.style.width = `${rect.width}px`;
+    this.ghost.style.height = `${rect.height}px`;
   }
 
   syncScroll(): void {
-    this.ghost.scrollLeft = this.inputEl.scrollLeft
+    this.ghost.scrollLeft = this.inputEl.scrollLeft;
+    this.ghost.scrollTop = this.inputEl.scrollTop;
   }
 
   render(text: string, cursorPos: number, suggestionText: string | null): void {
+    this.syncPosition();
+
     if (!suggestionText) {
-      this.ghost.style.display = 'none'
-      return
+      this.ghost.style.display = "none";
+      return;
     }
 
-    this.ghost.style.display = 'block'
+    this.ghost.style.display = "block";
 
-    // Replace trailing spaces with non-breaking spaces to preserve width
-    const prefixText = text.slice(0, cursorPos).replace(/\s+$/, (spaces) => '\u00A0'.repeat(spaces.length))
-    this.prefix.textContent = prefixText
-    this.suggestion.textContent = suggestionText
+    const prefixText = text
+      .slice(0, cursorPos)
+      .replace(/\s+$/, (spaces) => "\u00A0".repeat(spaces.length));
+    this.prefix.textContent = prefixText;
+    this.suggestion.textContent = suggestionText;
   }
 
   destroy(): void {
-    this.resizeObserver.disconnect()
-    this.inputEl.removeEventListener('scroll', this.scrollHandler)
-    this.originalParent.insertBefore(this.inputEl, this.originalNextSibling)
-    this.wrapper.remove()
+    this.resizeObserver.disconnect();
+    this.inputEl.removeEventListener("scroll", this.scrollHandler);
+    window.removeEventListener("resize", this.windowResizeHandler);
+    window.removeEventListener("scroll", this.windowResizeHandler, true);
+    this.ghost.remove();
   }
 }

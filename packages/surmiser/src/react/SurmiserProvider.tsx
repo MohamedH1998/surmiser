@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo } from "react";
 import type { SurmiserProvider as Provider } from "../types";
+import { localPredictive } from "../defaults";
 
 interface SurmiserContextValue {
   providers: Provider[];
@@ -14,7 +15,12 @@ export function useSurmiserContext() {
 }
 
 interface SurmiserProviderProps {
-  provider: Provider | Provider[];
+  /**
+   * - Omit for default "Batteries Included" corpus
+   * - Pass `string[]` for simple custom predictive text
+   * - Pass `Provider` for full custom logic (LLM, API, etc)
+   */
+  provider?: Provider | Provider[] | string[];
   debounceMs?: number;
   minConfidence?: number;
   children: React.ReactNode;
@@ -25,9 +31,13 @@ interface SurmiserProviderProps {
  *
  * @example
  * ```tsx
- * import { localPredictive } from 'surmiser-corpus'
+ * // Zero Config (Default Corpus)
+ * <SurmiserProvider>
+ *   <App />
+ * </SurmiserProvider>
  *
- * <SurmiserProvider provider={localPredictive()}>
+ * // Custom Simple Corpus
+ * <SurmiserProvider provider={['hello', 'world']}>
  *   <App />
  * </SurmiserProvider>
  * ```
@@ -39,11 +49,26 @@ export function SurmiserProvider({
   children,
 }: SurmiserProviderProps) {
   const providers = useMemo(() => {
-    return Array.isArray(provider) ? provider : [provider];
+    if (!provider) {
+      return [localPredictive()];
+    }
+
+    if (Array.isArray(provider) && typeof provider[0] === "string") {
+      return [localPredictive(provider as string[])];
+    }
+
+    return Array.isArray(provider)
+      ? (provider as Provider[])
+      : [provider as Provider];
   }, [provider]);
 
+  const contextValue = useMemo(
+    () => ({ providers, debounceMs, minConfidence }),
+    [providers, debounceMs, minConfidence]
+  );
+
   return (
-    <SurmiserContext.Provider value={{ providers, debounceMs, minConfidence }}>
+    <SurmiserContext.Provider value={contextValue}>
       {children}
     </SurmiserContext.Provider>
   );

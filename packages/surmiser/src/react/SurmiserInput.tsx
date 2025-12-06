@@ -30,10 +30,8 @@ export const SurmiserInput = forwardRef<HTMLInputElement, SurmiserInputProps>(
     })
 
     const mergedRef = useCallback((node: HTMLInputElement | null) => {
-      // Call our attachRef
       attachRef(node)
 
-      // Forward to external ref
       if (typeof ref === 'function') {
         ref(node)
       } else if (ref) {
