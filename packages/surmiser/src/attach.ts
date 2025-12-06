@@ -1,13 +1,13 @@
-import { ClozeEngine } from './engine'
+import { SurmiserEngine } from './engine'
 import { GhostRenderer } from './renderer'
 import { buildContext } from './context'
-import type { ClozeOptions, Suggestion } from './types'
+import type { SurmiserOptions, Suggestion } from './types'
 
-export function attachCloze(
+export function attachSurmiser(
   inputEl: HTMLInputElement,
-  options: ClozeOptions
+  options: SurmiserOptions
 ): () => void {
-  const engine = new ClozeEngine({
+  const engine = new SurmiserEngine({
     ...options,
     onSuggestion: (suggestion) => {
       if (!isComposing) {

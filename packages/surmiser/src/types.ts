@@ -11,14 +11,14 @@ export interface Suggestion {
   providerId: string
 }
 
-export interface ClozeProvider {
+export interface SurmiserProvider {
   id: string
   priority: number
   suggest(ctx: SuggestionContext, signal: AbortSignal): Promise<Suggestion | null>
 }
 
-export interface ClozeOptions {
-  providers: ClozeProvider[]
+export interface SurmiserOptions {
+  providers: SurmiserProvider[]
   debounceMs?: number
   minConfidence?: number
   onSuggestion?: (s: Suggestion | null) => void

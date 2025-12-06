@@ -1,5 +1,5 @@
 {
-  "name": "cloze",
+  "name": "surmiser",
   "version": "0.0.1",
   "type": "module",
   "main": "./dist/index.js",
@@ -23,8 +23,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/MohamedH1998/cloze.git",
-    "directory": "packages/cloze"
+    "url": "https://github.com/MohamedH1998/surmiser.git",
+    "directory": "packages/surmiser"
   },
   "license": "MIT",
   "publishConfig": {

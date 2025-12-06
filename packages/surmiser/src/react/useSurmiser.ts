@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { attachCloze } from '../attach'
+import { attachSurmiser } from '../attach'
 import type { Suggestion } from '../types'
-import { useClozeContext } from './ClozeProvider'
+import { useSurmiserContext } from './SurmiserProvider'
 
-interface UseClozeOptions {
+interface UseSurmiserOptions {
   debounceMs?: number
   minConfidence?: number
   onAccept?: (s: Suggestion) => void
@@ -17,22 +17,22 @@ interface UseClozeOptions {
  * @example
  * ```tsx
  * function EmailInput(props) {
- *   const { attachRef } = useCloze()
+ *   const { attachRef } = useSurmiser()
  *   return <YourCustomInput ref={attachRef} {...props} />
  * }
  * ```
  *
  * Works with any input component (shadcn, Radix, custom, etc.)
  */
-export function useCloze(options: UseClozeOptions = {}) {
-  const context = useClozeContext()
+export function useSurmiser(options: UseSurmiserOptions = {}) {
+  const context = useSurmiserContext()
   const [suggestion, setSuggestion] = useState<Suggestion | null>(null)
   const detachRef = useRef<(() => void) | null>(null)
   const onAcceptRef = useRef(options.onAccept)
   const inputRef = useRef<HTMLInputElement | null>(null)
 
   if (!context) {
-    throw new Error('useCloze must be used within a ClozeProvider')
+    throw new Error('useSurmiser must be used within a SurmiserProvider')
   }
 
   // Keep callback ref up to date (no effect needed - refs don't trigger re-renders)
@@ -57,7 +57,7 @@ export function useCloze(options: UseClozeOptions = {}) {
       const debounceMs = options.debounceMs ?? context.debounceMs
       const minConfidence = options.minConfidence ?? context.minConfidence
 
-      detachRef.current = attachCloze(node, {
+      detachRef.current = attachSurmiser(node, {
         providers,
         debounceMs,
         minConfidence,

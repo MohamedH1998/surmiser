@@ -1,7 +1,7 @@
 import { forwardRef, useCallback } from 'react'
-import { useCloze } from './useCloze'
+import { useSurmiser } from './useSurmiser'
 
-interface ClozeInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface SurmiserInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   debounceMs?: number
   minConfidence?: number
 }
@@ -9,21 +9,21 @@ interface ClozeInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 /**
  * Convenience component for quick start.
  *
- * For composition with your own components, use `useCloze()` hook instead.
+ * For composition with your own components, use `useSurmiser()` hook instead.
  *
  * @example
  * ```tsx
  * // Quick start
- * <ClozeInput placeholder="Email..." />
+ * <SurmiserInput placeholder="Email..." />
  *
  * // For composition - use the hook
- * const { attachRef } = useCloze()
+ * const { attachRef } = useSurmiser()
  * <YourInput ref={attachRef} />
  * ```
  */
-export const ClozeInput = forwardRef<HTMLInputElement, ClozeInputProps>(
+export const SurmiserInput = forwardRef<HTMLInputElement, SurmiserInputProps>(
   ({ debounceMs, minConfidence, value, ...props }, ref) => {
-    const { attachRef } = useCloze({
+    const { attachRef } = useSurmiser({
       debounceMs,
       minConfidence,
       value: typeof value === 'string' ? value : undefined
@@ -45,4 +45,4 @@ export const ClozeInput = forwardRef<HTMLInputElement, ClozeInputProps>(
   }
 )
 
-ClozeInput.displayName = 'ClozeInput'
+SurmiserInput.displayName = 'SurmiserInput'
