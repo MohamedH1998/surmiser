@@ -4,8 +4,9 @@ import type {
   Suggestion,
 } from "@surmise/core";
 import { normalizeText, tokenize } from "./tokenizer";
+import { defaultCorpus } from "./default-corpus";
 
-export function localPredictive(phrases: string[]): SurmiseProvider {
+export function localPredictive(phrases: string[] = defaultCorpus): SurmiseProvider {
   const normalizedPhrases = phrases.map((p) => normalizeText(p));
 
   return {
@@ -15,7 +16,6 @@ export function localPredictive(phrases: string[]): SurmiseProvider {
     async suggest(ctx: SuggestionContext): Promise<Suggestion | null> {
       const textBeforeCursor = ctx.text.slice(0, ctx.cursorPosition);
       const hasTrailingSpace = /\s$/.test(textBeforeCursor);
-      console.log("🟢 - hasTrailingSpace", hasTrailingSpace);
       const input = normalizeText(textBeforeCursor);
       if (!input) return null;
 

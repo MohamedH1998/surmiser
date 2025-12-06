@@ -21,7 +21,8 @@
     "react": "^18.0.0"
   },
   "dependencies": {
-    "@surmise/core": "workspace:*"
+    "@surmise/core": "workspace:*",
+    "@surmise/corpus": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",

@@ -1,5 +1,6 @@
-import { createContext, useContext } from 'react'
+import { createContext, useContext, useMemo } from 'react'
 import type { SurmiseProvider as Provider } from '@surmise/core'
+import { defaultProvider, localPredictive } from '@surmise/corpus'
 
 interface SurmiseContextValue {
   providers: Provider[]
@@ -14,7 +15,8 @@ export function useSurmiseContext() {
 }
 
 interface SurmiseProviderProps {
-  provider?: Provider | Provider[]
+  /** Provider(s), corpus array(s), or omit for default corpus */
+  provider?: Provider | Provider[] | string[] | string[][]
   debounceMs?: number
   minConfidence?: number
   children: React.ReactNode
@@ -25,17 +27,36 @@ interface SurmiseProviderProps {
  *
  * @example
  * ```tsx
+ * // Use default corpus
+ * <SurmiseProvider>
+ *   <App />
+ * </SurmiseProvider>
+ *
+ * // Pass custom corpus
+ * <SurmiseProvider provider={['hello', 'world']}>
+ *   <App />
+ * </SurmiseProvider>
+ *
+ * // Pass provider directly
  * <SurmiseProvider provider={localPredictive(corpus)}>
  *   <App />
  * </SurmiseProvider>
  * ```
  */
 export function SurmiseProvider({ provider, debounceMs, minConfidence, children }: SurmiseProviderProps) {
-  const providers = provider
-    ? Array.isArray(provider)
-      ? provider
-      : [provider]
-    : []
+  const providers = useMemo(() => {
+    if (!provider) {
+      return [defaultProvider]
+    }
+
+    // String array = corpus -> convert to provider
+    if (Array.isArray(provider) && typeof provider[0] === 'string') {
+      return [localPredictive(provider as string[])]
+    }
+
+    // Already provider(s)
+    return Array.isArray(provider) ? provider as Provider[] : [provider as Provider]
+  }, [provider])
 
   return (
     <SurmiseContext.Provider value={{ providers, debounceMs, minConfidence }}>

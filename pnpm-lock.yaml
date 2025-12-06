@@ -39,6 +39,9 @@ importers:
       '@surmise/core':
         specifier: workspace:*
         version: link:../core
+      '@surmise/corpus':
+        specifier: workspace:*
+        version: link:../corpus
     devDependencies:
       '@types/react':
         specifier: ^18.2.0
