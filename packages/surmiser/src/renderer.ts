@@ -1,5 +1,6 @@
 export class GhostRenderer {
   private ghost: HTMLDivElement;
+  private wrapper: HTMLDivElement;
   private prefix: HTMLSpanElement;
   private suggestion: HTMLSpanElement;
   private resizeObserver: ResizeObserver;
@@ -19,6 +20,10 @@ export class GhostRenderer {
       background: transparent;
     `;
 
+    // Create wrapper for text content
+    this.wrapper = document.createElement("div");
+    this.wrapper.style.width = "100%";
+
     // Prefix span (invisible)
     this.prefix = document.createElement("span");
     this.prefix.style.cssText = "opacity: 0;";
@@ -27,8 +32,9 @@ export class GhostRenderer {
     this.suggestion = document.createElement("span");
     this.suggestion.style.cssText = "color: #999;";
 
-    this.ghost.appendChild(this.prefix);
-    this.ghost.appendChild(this.suggestion);
+    this.wrapper.appendChild(this.prefix);
+    this.wrapper.appendChild(this.suggestion);
+    this.ghost.appendChild(this.wrapper);
 
     document.body.appendChild(this.ghost);
 
@@ -66,10 +72,7 @@ export class GhostRenderer {
       "font-weight",
       "font-style",
       "letter-spacing",
-      "line-height",
-      "padding-top",
       "padding-right",
-      "padding-bottom",
       "padding-left",
       "border-top-width",
       "border-right-width",
@@ -79,10 +82,10 @@ export class GhostRenderer {
       "border-right-style",
       "border-bottom-style",
       "border-left-style",
-      "box-sizing",
       "text-align",
       "text-transform",
       "white-space",
+      "text-indent",
     ];
 
     styles.forEach((prop) => {
@@ -92,6 +95,19 @@ export class GhostRenderer {
     // Explicitly transparent background/border for ghost
     this.ghost.style.backgroundColor = "transparent";
     this.ghost.style.borderColor = "transparent";
+
+    // Force border-box and zero vertical padding to ensure centering works correctly
+    this.ghost.style.boxSizing = "border-box";
+    this.ghost.style.paddingTop = "0px";
+    this.ghost.style.paddingBottom = "0px";
+    this.ghost.style.lineHeight = "normal";
+
+    // Use flexbox for alignment
+    this.ghost.style.flexDirection = "row";
+    this.ghost.style.alignItems = "center";
+
+    // Justify-content not needed as wrapper takes full width and handles alignment
+    this.ghost.style.justifyContent = "normal";
 
     this.syncScroll();
   }
@@ -120,7 +136,7 @@ export class GhostRenderer {
       return;
     }
 
-    this.ghost.style.display = "block";
+    this.ghost.style.display = "flex";
 
     const prefixText = text
       .slice(0, cursorPos)
