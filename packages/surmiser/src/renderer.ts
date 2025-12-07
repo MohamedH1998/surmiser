@@ -18,6 +18,7 @@ export class GhostRenderer {
       border-color: transparent;
       z-index: 9999;
       background: transparent;
+      white-space: pre;
     `;
 
     // Create wrapper for text content
@@ -84,7 +85,6 @@ export class GhostRenderer {
       "border-left-style",
       "text-align",
       "text-transform",
-      "white-space",
       "text-indent",
     ];
 
