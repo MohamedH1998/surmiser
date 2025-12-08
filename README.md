@@ -4,7 +4,7 @@
 
 Add "Smart Compose" style predictive text to any input in minutes. Local-first, privacy-focused, and completely UI agnostic.
 
-![Surmiser Demo](http://momito.co.uk/surmiser)
+[Surmiser Demo](http://momito.co.uk/surmiser)
 
 ## Features
 
