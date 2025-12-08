@@ -89,8 +89,16 @@ export function localPredictive(
 
       if (bestMatch) {
         const needsSpace = !/\s$/.test(textBeforeCursor);
+        let text = bestMatch.text;
+
+        if (needsSpace && !text.startsWith(" ")) {
+          text = " " + text;
+        } else if (!needsSpace && text.startsWith(" ")) {
+          text = text.trimStart();
+        }
+
         return {
-          text: needsSpace ? " " + bestMatch.text : bestMatch.text,
+          text,
           confidence: bestMatch.confidence,
           providerId: "local-predictive",
         };
