@@ -21,7 +21,7 @@ export class SurmiserEngine {
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
 
-    const providers = [...this.options.providers].sort(
+    const providers = [...this.options.providers!].sort(
       (a, b) => b.priority - a.priority
     );
 

@@ -17,7 +17,8 @@ export interface SurmiserProvider {
 }
 
 export interface SurmiserOptions {
-  providers: SurmiserProvider[]
+  providers?: SurmiserProvider[]
+  corpus?: string[]
   debounceMs?: number
   minConfidence?: number
   onSuggestion?: (s: Suggestion | null) => void
