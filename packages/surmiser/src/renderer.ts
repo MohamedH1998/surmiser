@@ -3,11 +3,38 @@ export class GhostRenderer {
   private wrapper: HTMLDivElement;
   private prefix: HTMLSpanElement;
   private suggestion: HTMLSpanElement;
+  private liveRegion: HTMLDivElement;
   private resizeObserver: ResizeObserver;
   private scrollHandler: () => void;
   private windowResizeHandler: () => void;
+  private viewportHandler: (() => void) | null = null;
+  private onAccept?: () => void;
+  private isMobile: boolean;
+  private lastAnnouncement: string = "";
 
-  constructor(private inputEl: HTMLInputElement) {
+  constructor(private inputEl: HTMLInputElement, onAccept?: () => void) {
+    this.onAccept = onAccept;
+    this.isMobile = this.detectTouchDevice();
+
+    inputEl.setAttribute("aria-autocomplete", "inline");
+
+    // Create screen reader live region for announcements
+    this.liveRegion = document.createElement("div");
+    this.liveRegion.setAttribute("aria-live", "polite");
+    this.liveRegion.setAttribute("aria-atomic", "true");
+    this.liveRegion.style.cssText = `
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    `;
+    document.body.appendChild(this.liveRegion);
+
     // Create ghost overlay attached to body to avoid disturbing React DOM
     this.ghost = document.createElement("div");
     this.ghost.setAttribute("aria-hidden", "true");
@@ -19,19 +46,21 @@ export class GhostRenderer {
       z-index: 9999;
       background: transparent;
       white-space: pre;
+      opacity: 0;
+      transition: opacity 50ms ease-out;
     `;
 
-    // Create wrapper for text content
     this.wrapper = document.createElement("div");
     this.wrapper.style.width = "100%";
 
-    // Prefix span (invisible)
     this.prefix = document.createElement("span");
     this.prefix.style.cssText = "opacity: 0;";
 
-    // Suggestion span (visible, gray)
     this.suggestion = document.createElement("span");
-    this.suggestion.style.cssText = "color: #999;";
+    this.suggestion.style.cssText = `
+      color: var(--surmiser-suggestion-color, var(--muted-foreground, #999));
+      pointer-events: none;
+    `;
 
     this.wrapper.appendChild(this.prefix);
     this.wrapper.appendChild(this.suggestion);
@@ -39,11 +68,16 @@ export class GhostRenderer {
 
     document.body.appendChild(this.ghost);
 
+    // Tap-to-accept handler (mobile only, only active when suggestion visible)
+    if (this.isMobile) {
+      this.suggestion.addEventListener("click", this.handleTap);
+      this.suggestion.addEventListener("touchend", this.handleTap);
+    }
+
     // Sync styles
     this.syncStyles();
     this.syncPosition();
 
-    // Watch for resize of input
     this.resizeObserver = new ResizeObserver(() => {
       this.syncStyles();
       this.syncPosition();
@@ -53,16 +87,36 @@ export class GhostRenderer {
     // Sync scroll position
     this.scrollHandler = () => {
       this.syncScroll();
-      // Also sync position in case input moved due to parent scroll
       this.syncPosition();
     };
-    // We need to listen to window scroll too to keep position fixed absolute
     this.windowResizeHandler = () => this.syncPosition();
 
     inputEl.addEventListener("scroll", this.scrollHandler);
     window.addEventListener("resize", this.windowResizeHandler);
-    window.addEventListener("scroll", this.windowResizeHandler, true); // Capture to catch all scrolls
+    window.addEventListener("scroll", this.windowResizeHandler, true);
+
+    if (window.visualViewport) {
+      this.viewportHandler = () => this.syncPosition();
+      window.visualViewport.addEventListener("resize", this.viewportHandler);
+      window.visualViewport.addEventListener("scroll", this.viewportHandler);
+    }
   }
+
+  private detectTouchDevice(): boolean {
+    return (
+      "ontouchstart" in window ||
+      navigator.maxTouchPoints > 0 ||
+      window.matchMedia("(pointer: coarse)").matches
+    );
+  }
+
+  private handleTap = (e: Event) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (this.onAccept) {
+      this.onAccept();
+    }
+  };
 
   syncStyles(): void {
     const computed = window.getComputedStyle(this.inputEl);
@@ -92,21 +146,17 @@ export class GhostRenderer {
       this.ghost.style[prop as any] = computed[prop as any];
     });
 
-    // Explicitly transparent background/border for ghost
     this.ghost.style.backgroundColor = "transparent";
     this.ghost.style.borderColor = "transparent";
 
-    // Force border-box and zero vertical padding to ensure centering works correctly
     this.ghost.style.boxSizing = "border-box";
     this.ghost.style.paddingTop = "0px";
     this.ghost.style.paddingBottom = "0px";
     this.ghost.style.lineHeight = "normal";
 
-    // Use flexbox for alignment
     this.ghost.style.flexDirection = "row";
     this.ghost.style.alignItems = "center";
 
-    // Justify-content not needed as wrapper takes full width and handles alignment
     this.ghost.style.justifyContent = "normal";
 
     this.syncScroll();
@@ -132,24 +182,55 @@ export class GhostRenderer {
     this.syncPosition();
 
     if (!suggestionText) {
-      this.ghost.style.display = "none";
+      this.ghost.style.opacity = "0";
+      if (this.isMobile) {
+        this.suggestion.style.pointerEvents = "none";
+      }
+      if (this.lastAnnouncement) {
+        this.liveRegion.textContent = "";
+        this.lastAnnouncement = "";
+      }
       return;
     }
 
     this.ghost.style.display = "flex";
+    void this.ghost.offsetHeight;
+    this.ghost.style.opacity = "1";
+
+    if (this.isMobile) {
+      this.suggestion.style.pointerEvents = "auto";
+      this.suggestion.style.cursor = "pointer";
+    }
 
     const prefixText = text
       .slice(0, cursorPos)
       .replace(/\s+$/, (spaces) => "\u00A0".repeat(spaces.length));
     this.prefix.textContent = prefixText;
     this.suggestion.textContent = suggestionText;
+
+    // Announce to screen readers (only if suggestion changed)
+    const fullSuggestion = text.slice(0, cursorPos) + suggestionText;
+    if (fullSuggestion !== this.lastAnnouncement) {
+      this.liveRegion.textContent = `Suggestion: ${fullSuggestion}`;
+      this.lastAnnouncement = fullSuggestion;
+    }
   }
 
   destroy(): void {
     this.resizeObserver.disconnect();
     this.inputEl.removeEventListener("scroll", this.scrollHandler);
+    this.inputEl.removeAttribute("aria-autocomplete");
     window.removeEventListener("resize", this.windowResizeHandler);
     window.removeEventListener("scroll", this.windowResizeHandler, true);
+    if (this.isMobile) {
+      this.suggestion.removeEventListener("click", this.handleTap);
+      this.suggestion.removeEventListener("touchend", this.handleTap);
+    }
+    if (window.visualViewport && this.viewportHandler) {
+      window.visualViewport.removeEventListener("resize", this.viewportHandler);
+      window.visualViewport.removeEventListener("scroll", this.viewportHandler);
+    }
     this.ghost.remove();
+    this.liveRegion.remove();
   }
 }

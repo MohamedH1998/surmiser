@@ -12,11 +12,9 @@ export function localPredictive(
 
     async suggest(ctx: SuggestionContext): Promise<Suggestion | null> {
       const textBeforeCursor = ctx.text.slice(0, ctx.cursorPosition);
-      const hasTrailingSpace = /\s$/.test(textBeforeCursor);
       const input = normalizeText(textBeforeCursor);
       if (!input) return null;
 
-      // Terminal punctuation and special characters no suggestions after these
       // Allowed: apostrophes ('), hyphens (-), commas (,), spaces
       if (/[.!?;:…@#$%^&*()+=\[\]{}|\\/<>`~]$/.test(textBeforeCursor.trim())) {
         return null;
@@ -79,12 +77,9 @@ export function localPredictive(
           if (phrasePrefix === inputPrefix && phraseTokens.length > matchLen) {
             const remainingTokens = phraseTokens.slice(matchLen);
 
-            const suggestion = hasTrailingSpace
-              ? remainingTokens.join(" ")
-              : " " + remainingTokens.join(" ");
+            const suggestion = remainingTokens.join(" ");
             const confidence = matchLen >= 3 ? 95 : matchLen >= 2 ? 90 : 80;
 
-            // Keep best match (prefer longer matches)
             if (!bestMatch || matchLen > bestMatch.matchLen) {
               bestMatch = { text: suggestion, confidence, matchLen };
             }
@@ -92,7 +87,6 @@ export function localPredictive(
         }
       }
 
-      // Return best match for this matchLen before trying shorter
       if (bestMatch) {
         return {
           text: bestMatch.text,

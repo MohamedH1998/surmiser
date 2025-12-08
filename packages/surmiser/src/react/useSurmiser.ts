@@ -48,7 +48,6 @@ export function useSurmiser(options: UseSurmiserOptions = {}) {
 
   useEffect(() => {
     if (!element) return;
-
     const debounceMs = options.debounceMs ?? ctxDebounce;
     const minConfidence = options.minConfidence ?? ctxMinConf;
 
