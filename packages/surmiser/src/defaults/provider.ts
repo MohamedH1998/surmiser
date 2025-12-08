@@ -88,8 +88,9 @@ export function localPredictive(
       }
 
       if (bestMatch) {
+        const needsSpace = !/\s$/.test(textBeforeCursor);
         return {
-          text: bestMatch.text,
+          text: needsSpace ? " " + bestMatch.text : bestMatch.text,
           confidence: bestMatch.confidence,
           providerId: "local-predictive",
         };

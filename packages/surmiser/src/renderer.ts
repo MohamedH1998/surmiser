@@ -57,8 +57,9 @@ export class GhostRenderer {
     this.prefix.style.cssText = "opacity: 0;";
 
     this.suggestion = document.createElement("span");
+    // Default style, but color will be computed dynamically based on input color
     this.suggestion.style.cssText = `
-      color: var(--surmiser-suggestion-color, var(--muted-foreground, #999));
+      opacity: 0.5;
       pointer-events: none;
     `;
 
@@ -135,8 +136,11 @@ export class GhostRenderer {
       "border-left-width",
       "border-top-style",
       "border-right-style",
+      "padding-top",
+      "padding-bottom",
       "border-bottom-style",
       "border-left-style",
+      "line-height",
       "text-align",
       "text-transform",
       "text-indent",
@@ -146,13 +150,24 @@ export class GhostRenderer {
       this.ghost.style[prop as any] = computed[prop as any];
     });
 
+    // Auto-calculate suggestion color based on input color
+    // We take the computed color and reduce its opacity to 50%
+    const inputColor = computed.color;
+    // Check if user provided an override via CSS variable
+    const overrideColor = computed.getPropertyValue("--surmiser-suggestion-color").trim();
+    
+    if (overrideColor) {
+      this.suggestion.style.color = overrideColor;
+      this.suggestion.style.opacity = "1";
+    } else {
+      this.suggestion.style.color = inputColor;
+      this.suggestion.style.opacity = "0.5";
+    }
+
     this.ghost.style.backgroundColor = "transparent";
     this.ghost.style.borderColor = "transparent";
 
     this.ghost.style.boxSizing = "border-box";
-    this.ghost.style.paddingTop = "0px";
-    this.ghost.style.paddingBottom = "0px";
-    this.ghost.style.lineHeight = "normal";
 
     this.ghost.style.flexDirection = "row";
     this.ghost.style.alignItems = "center";

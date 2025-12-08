@@ -120,22 +120,39 @@ export function attachSurmiser(
 
   const accept = (suggestion: Suggestion) => {
     const cursorPos = inputEl.selectionStart || 0;
-    const newValue = inputEl.value.slice(0, cursorPos) + suggestion.text;
-    setInputValue(inputEl, newValue);
-    lastValue = newValue;
+
+    inputEl.setSelectionRange(cursorPos, inputEl.value.length);
+    inputEl.focus();
+
+    let success = false;
+    if (
+      typeof document !== "undefined" &&
+      typeof document.execCommand === "function"
+    ) {
+      try {
+        success = document.execCommand("insertText", false, suggestion.text);
+      } catch (e) {}
+    }
+
+    if (!success) {
+      const newValue = inputEl.value.slice(0, cursorPos) + suggestion.text;
+      setInputValue(inputEl, newValue);
+      lastValue = newValue;
+
+      inputEl.setSelectionRange(newValue.length, newValue.length);
+      inputEl.scrollLeft = inputEl.scrollWidth;
+      inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+    } else {
+      lastValue = inputEl.value;
+    }
 
     engine.clearSuggestion();
     render(null);
     options.onAccept?.(suggestion);
 
     isDismissed = false;
-
-    inputEl.setSelectionRange(newValue.length, newValue.length);
-    inputEl.scrollLeft = inputEl.scrollWidth;
-    inputEl.dispatchEvent(new Event("input", { bubbles: true }));
   };
 
-  // Event handlers
   const handleInput = () => {
     if (isComposing) return;
 
