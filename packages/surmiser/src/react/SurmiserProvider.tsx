@@ -16,11 +16,23 @@ export function useSurmiserContext() {
 
 interface SurmiserProviderProps {
   /**
-   * - Omit for default "Batteries Included" corpus
-   * - Pass `string[]` for simple custom predictive text
-   * - Pass `Provider` for full custom logic (LLM, API, etc)
+   * Simple string array for quick setup.
+   * Mutually exclusive with `provider`.
+   * 
+   * @example corpus={['hello', 'world']}
+   */
+  corpus?: string[];
+  
+  /**
+   * Advanced: full Provider objects for custom logic (LLM, API, etc)
+   * Mutually exclusive with `corpus`.
+   * - Pass `string[]` for simple predictive text (same as corpus)
+   * - Pass `Provider` or `Provider[]` for advanced use cases
+   * 
+   * @example provider={customAPIProvider}
    */
   provider?: Provider | Provider[] | string[];
+  
   debounceMs?: number;
   minConfidence?: number;
   children: React.ReactNode;
@@ -37,18 +49,36 @@ interface SurmiserProviderProps {
  * </SurmiserProvider>
  *
  * // Custom Simple Corpus
- * <SurmiserProvider provider={['hello', 'world']}>
+ * <SurmiserProvider corpus={['hello', 'world']}>
+ *   <App />
+ * </SurmiserProvider>
+ *
+ * // Advanced: Custom Provider
+ * <SurmiserProvider provider={customAPIProvider}>
  *   <App />
  * </SurmiserProvider>
  * ```
  */
 export function SurmiserProvider({
+  corpus,
   provider,
   debounceMs,
   minConfidence,
   children,
 }: SurmiserProviderProps) {
   const providers = useMemo(() => {
+
+    if (corpus && provider) {
+      throw new Error(
+        "SurmiserProvider: Cannot use both 'corpus' and 'provider'. " +
+        "Use 'corpus' for simple arrays, or 'provider' for advanced use cases."
+      );
+    }
+
+    if (corpus) {
+      return [localPredictive(corpus)];
+    }
+
     if (!provider) {
       return [localPredictive()];
     }
@@ -60,7 +90,7 @@ export function SurmiserProvider({
     return Array.isArray(provider)
       ? (provider as Provider[])
       : [provider as Provider];
-  }, [provider]);
+  }, [corpus, provider]);
 
   const contextValue = useMemo(
     () => ({ providers, debounceMs, minConfidence }),

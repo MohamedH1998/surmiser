@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { attachSurmiser } from "../attach";
-import type { Suggestion } from "../types";
+import { localPredictive } from "../defaults";
+import type { Suggestion, SurmiserProvider } from "../types";
 import { useSurmiserContext } from "./SurmiserProvider";
 
 interface UseSurmiserOptions {
+  corpus?: string[];
+  providers?: SurmiserProvider[];
   debounceMs?: number;
   minConfidence?: number;
   onAccept?: (s: Suggestion) => void;
@@ -20,6 +23,14 @@ interface UseSurmiserOptions {
  *   const { attachRef } = useSurmiser()
  *   return <YourCustomInput ref={attachRef} {...props} />
  * }
+ *
+ * // With custom corpus
+ * function CommandInput(props) {
+ *   const { attachRef } = useSurmiser({
+ *     corpus: ['git commit', 'git push', 'git pull']
+ *   })
+ *   return <input ref={attachRef} {...props} />
+ * }
  * ```
  */
 export function useSurmiser(options: UseSurmiserOptions = {}) {
@@ -35,7 +46,7 @@ export function useSurmiser(options: UseSurmiserOptions = {}) {
   }
 
   const {
-    providers,
+    providers: ctxProviders,
     debounceMs: ctxDebounce,
     minConfidence: ctxMinConf,
   } = context;
@@ -51,8 +62,18 @@ export function useSurmiser(options: UseSurmiserOptions = {}) {
     const debounceMs = options.debounceMs ?? ctxDebounce;
     const minConfidence = options.minConfidence ?? ctxMinConf;
 
+    let finalProviders: SurmiserProvider[];
+
+    if (options.providers) {
+      finalProviders = options.providers;
+    } else if (options.corpus) {
+      finalProviders = [...ctxProviders, localPredictive(options.corpus)];
+    } else {
+      finalProviders = ctxProviders;
+    }
+
     const detach = attachSurmiser(element, {
-      providers,
+      providers: finalProviders,
       debounceMs,
       minConfidence,
       onSuggestion: setSuggestion,
@@ -67,11 +88,13 @@ export function useSurmiser(options: UseSurmiserOptions = {}) {
     };
   }, [
     element,
+    options.corpus,
+    options.providers,
     options.debounceMs,
     options.minConfidence,
     ctxDebounce,
     ctxMinConf,
-    providers,
+    ctxProviders,
   ]);
 
   return { attachRef, suggestion };

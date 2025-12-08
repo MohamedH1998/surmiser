@@ -2,7 +2,7 @@ import { SurmiserEngine } from "./engine";
 import { GhostRenderer } from "./renderer";
 import { buildContext } from "./context";
 import { localPredictive } from "./defaults";
-import type { SurmiserOptions, Suggestion } from "./types";
+import type { SurmiserOptions, SurmiserProvider, Suggestion } from "./types";
 
 const SWIPE_THRESHOLD_PX = 50;
 
@@ -67,15 +67,22 @@ export function attachSurmiser(
   let isDismissed = false; // True after double-space dismiss, until user types non-space
   let touchStart: { x: number; y: number } | null = null;
 
-  const providers = [...(options.providers || [])];
-  
-  if (options.corpus) {
-    providers.push(localPredictive(options.corpus));
+  if (options.corpus && options.providers) {
+    throw new Error(
+      "Surmiser: Cannot use both 'corpus' and 'providers'. " +
+        "Use 'corpus' for simple arrays, or 'providers' for advanced use cases. " +
+        "For multiple corpora: providers: [localPredictive(corpus1), localPredictive(corpus2)]"
+    );
   }
 
-  // Default to batteries-included corpus if nothing provided
-  if (providers.length === 0) {
-    providers.push(localPredictive());
+  let providers: SurmiserProvider[];
+
+  if (options.corpus) {
+    providers = [localPredictive(options.corpus)];
+  } else if (options.providers) {
+    providers = [...options.providers];
+  } else {
+    providers = [localPredictive()];
   }
 
   // Core components

@@ -1,7 +1,10 @@
 import { forwardRef, useCallback } from 'react'
 import { useSurmiser } from './useSurmiser'
+import type { SurmiserProvider } from '../types'
 
 interface SurmiserInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  corpus?: string[]
+  providers?: SurmiserProvider[]
   debounceMs?: number
   minConfidence?: number
 }
@@ -16,14 +19,22 @@ interface SurmiserInputProps extends React.InputHTMLAttributes<HTMLInputElement>
  * // Quick start
  * <SurmiserInput placeholder="Email..." />
  *
+ * // With custom corpus
+ * <SurmiserInput 
+ *   corpus={['hello', 'world']} 
+ *   placeholder="Type..." 
+ * />
+ *
  * // For composition - use the hook
  * const { attachRef } = useSurmiser()
  * <YourInput ref={attachRef} />
  * ```
  */
 export const SurmiserInput = forwardRef<HTMLInputElement, SurmiserInputProps>(
-  ({ debounceMs, minConfidence, value, ...props }, ref) => {
+  ({ corpus, providers, debounceMs, minConfidence, value, ...props }, ref) => {
     const { attachRef } = useSurmiser({
+      corpus,
+      providers,
       debounceMs,
       minConfidence,
       value: typeof value === 'string' ? value : undefined
