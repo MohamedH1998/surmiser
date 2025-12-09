@@ -4,15 +4,35 @@
 
 Add "Smart Compose" style predictive text to any input in minutes. Local-first, privacy-focused, and completely UI agnostic.
 
-[Surmiser Demo](http://momito.co.uk/surmiser)
+[![npm version](https://img.shields.io/npm/v/surmiser.svg)](https://www.npmjs.com/package/surmiser)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/surmiser)](https://bundlephobia.com/package/surmiser)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+![Surmiser Demo](http://momito.co.uk/surmiser)
+
+## Why Surmiser?
+
+Surmiser is a minimal, composable building block that works with your existing stack.
+
+**Key Differentiators:**
+
+- **UI-Agnostic**: Not tied to any framework or component library
+- **Privacy-First by Design**: Local-only predictions, no tracking or telemetry
+- **Production-Ready**: Comprehensive test suite (41 unit + 24 E2E tests), WCAG 2.1 AA compliant
+- **Developer-Friendly**: TypeScript-first with full type safety
+- **Lightweight**: < 10kB gzipped, zero dependencies (React peer-optional)
 
 ## Features
 
-- **Batteries Included**: Comes with a default corpus of common phrases.
-- **UI Agnostic**: Works with raw HTML, React, Shadcn, MUI, etc.
-- **Privacy First**: Local predictive engine by default. No data leaves the client.
-- **Mobile Ready**: Swipe right to accept suggestions.
-- **Keyboard Friendly**: Tab or Arrow Right to accept.
+- **Batteries Included**: Comes with a default corpus of common phrases
+- **UI Agnostic**: Works with raw HTML, React, Shadcn, MUI, or any framework
+- **Privacy First**: Local predictive engine by default - no data leaves the client
+- **Mobile Ready**: Swipe right to accept, optimized for touch
+- **Keyboard Friendly**: Tab or Arrow Right to accept
+- **Accessible**: WCAG 2.1 AA compliant with proper ARIA attributes
+- **Cross-Browser**: Tested on Chrome, Firefox, Safari, Edge, and mobile browsers
+- **TypeScript**: Full type definitions included
 
 ## Installation
 
@@ -24,19 +44,15 @@ npm install surmiser
 
 ### 1. React
 
-Surmiser provides a drop-in component and a hook for maximum flexibility.
+Surmiser provides a drop-in component and a hook for maximum flexibility. **No provider required** - works standalone out of the box.
 
 **The Easy Way (`SurmiserInput`)**
 
 ```tsx
-import { SurmiserProvider, SurmiserInput } from "surmiser/react";
+import { SurmiserInput } from "surmiser/react";
 
 function App() {
-  return (
-    <SurmiserProvider>
-      <SurmiserInput placeholder="Type something..." />
-    </SurmiserProvider>
-  );
+  return <SurmiserInput placeholder="Type something..." />;
 }
 ```
 
@@ -54,6 +70,23 @@ function MyCustomInput() {
 
   // 2. Attach it to your input
   return <Input ref={attachRef} />;
+}
+```
+
+**Optional: Use Provider for Shared Configuration**
+
+Want to share settings across multiple inputs? Use the optional `<SurmiserProvider>`:
+
+```tsx
+import { SurmiserProvider, SurmiserInput } from "surmiser/react";
+
+function App() {
+  return (
+    <SurmiserProvider corpus={["shared", "phrases"]}>
+      <SurmiserInput placeholder="Input 1..." />
+      <SurmiserInput placeholder="Input 2..." />
+    </SurmiserProvider>
+  );
 }
 ```
 
@@ -82,31 +115,86 @@ const DEV_TERMS = [
   "console.log",
 ];
 
-<SurmiserProvider provider={DEV_TERMS}>
+// Standalone usage
+<SurmiserInput corpus={DEV_TERMS} />
+
+// Or with Provider (shared across multiple inputs)
+<SurmiserProvider corpus={DEV_TERMS}>
+  <SurmiserInput />
   <SurmiserInput />
 </SurmiserProvider>;
 ```
 
-### Mobile Gestures
-
-Surmiser includes mobile-friendly gestures out of the box:
-
-- **Swipe Right**: Accept suggestion
-- **Double Space**: Dismiss suggestion
-
 ## Advanced Usage
 
-Surmiser is built on a provider architecture. You can swap the local predictive engine for:
+### Provider Architecture
 
-- Remote APIs
-- LLMs
-- Custom logic
+Surmiser is built on a provider architecture. Swap the local predictive engine for custom logic:
 
-## Coming soon
+```tsx
+import type { Provider } from "surmiser";
 
-- **Domain Specific Corpora**: Pre-built sets for specific use cases like Email, CRM, Customer Support, and Coding (e.g. `import { emailCorpus } from 'surmiser/corpora'`).
-- **AI Powered Autocomplete**: Plug-and-play integrations with LLMs for smart, context-aware suggestions.
+const apiProvider: Provider = {
+  priority: 15,
+  async suggest(input, signal) {
+    const res = await fetch(`/api/suggest?q=${input}`, { signal });
+    const data = await res.json();
+    return { text: data.text, confidence: data.score };
+  },
+};
+
+<SurmiserProvider provider={apiProvider}>
+  <App />
+</SurmiserProvider>;
+```
+
+Use cases:
+
+- **Remote APIs**: Call your backend for personalized suggestions
+- **Custom Logic**: Domain-specific matching algorithms
+- **Hybrid**: Combine multiple providers with priorities
+
+## Documentation
+
+- **[API Reference](./docs/API.md)** - Complete API documentation
+- **[Contributing](./CONTRIBUTING.md)** - Development guide
+
+## Troubleshooting
+
+### Ghost text not appearing?
+
+1. Check that input is focused and has text
+2. Verify corpus has matching phrases
+3. Try lowering `minConfidence` to 0 for debugging
+
+```tsx
+<SurmiserInput minConfidence={0} onAccept={(s) => console.log(s)} />
+```
+
+## Browser Support
+
+| Browser       | Version | Status             |
+| ------------- | ------- | ------------------ |
+| Chrome        | Latest  | ✅ Fully Supported |
+| Firefox       | Latest  | ✅ Fully Supported |
+| Safari        | Latest  | ✅ Fully Supported |
+| Edge          | Latest  | ✅ Fully Supported |
+| Chrome Mobile | Latest  | ✅ Fully Supported |
+| Safari Mobile | Latest  | ✅ Fully Supported |
+
+## Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for:
+
+- Development setup
+- Testing guidelines
+- Pull request process
+- Code style guide
 
 ## License
 
-MIT
+MIT © [Mohamed Hassan](https://github.com/MohamedH1998)
+
+---
+
+**Questions?** [Open an issue](https://github.com/MohamedH1998/surmiser/issues) or check the [API docs](./docs/API.md).
