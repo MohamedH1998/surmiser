@@ -65,6 +65,7 @@ export function attachSurmiser(
   let lastValue = inputEl.value;
   let isComposing = false;
   let isDismissed = false; // True after double-space dismiss, until user types non-space
+  let isAccepting = false; // True during programmatic value changes to prevent re-triggering
   let touchStart: { x: number; y: number } | null = null;
 
   if (options.corpus && options.providers) {
@@ -124,6 +125,8 @@ export function attachSurmiser(
     inputEl.setSelectionRange(cursorPos, inputEl.value.length);
     inputEl.focus();
 
+    isAccepting = true;
+
     let success = false;
     if (
       typeof document !== "undefined" &&
@@ -148,13 +151,19 @@ export function attachSurmiser(
 
     engine.clearSuggestion();
     render(null);
+    renderer.disableBadge();
     options.onAccept?.(suggestion);
 
     isDismissed = false;
+    
+    // Reset isAccepting after event loop to ensure input event has been processed
+    setTimeout(() => {
+      isAccepting = false;
+    }, 0);
   };
 
   const handleInput = () => {
-    if (isComposing) return;
+    if (isComposing || isAccepting) return;
 
     const value = inputEl.value;
     const cursorPos = inputEl.selectionStart || 0;
@@ -252,6 +261,12 @@ export function attachSurmiser(
   inputEl.addEventListener("compositionend", handleCompositionEnd, true);
   inputEl.addEventListener("touchstart", handleTouchStart, { passive: true });
   inputEl.addEventListener("touchend", handleTouchEnd, { passive: false });
+
+  // Accessibility
+  if (!inputEl.hasAttribute("role")) {
+    inputEl.setAttribute("role", "textbox");
+  }
+  inputEl.setAttribute("aria-autocomplete", "inline");
 
   // Cleanup
   return () => {

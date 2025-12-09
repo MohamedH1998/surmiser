@@ -30,6 +30,9 @@ Thumbs.db
 
 # Testing
 coverage/
+test-results/
+playwright-report/
+.playwright/
 
 # Misc
 *.cache

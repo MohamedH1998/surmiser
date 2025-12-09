@@ -3,6 +3,7 @@ export class GhostRenderer {
   private wrapper: HTMLDivElement;
   private prefix: HTMLSpanElement;
   private suggestion: HTMLSpanElement;
+  private badge: HTMLSpanElement;
   private liveRegion: HTMLDivElement;
   private resizeObserver: ResizeObserver;
   private scrollHandler: () => void;
@@ -11,6 +12,8 @@ export class GhostRenderer {
   private onAccept?: () => void;
   private isMobile: boolean;
   private lastAnnouncement: string = "";
+  private styleCache: Map<string, string> = new Map();
+  private showBadge: boolean = true;
 
   constructor(private inputEl: HTMLInputElement, onAccept?: () => void) {
     this.onAccept = onAccept;
@@ -43,7 +46,7 @@ export class GhostRenderer {
       pointer-events: none;
       overflow: hidden;
       border-color: transparent;
-      z-index: 9999;
+      z-index: 9999!important;
       background: transparent;
       white-space: pre;
       opacity: 0;
@@ -63,8 +66,27 @@ export class GhostRenderer {
       pointer-events: none;
     `;
 
+    // Create badge
+    this.badge = document.createElement("span");
+    this.badge.style.cssText = `
+      opacity: 0.5;
+      pointer-events: none;
+      margin-left: 4px;
+      font-size: 0.5em;
+      background-color: #F9F9F9;
+      font-weight: 500;
+      border-radius: 3px;
+      padding: 0 2px;
+      display: none;
+      vertical-align: middle;
+      line-height: 1.5em;
+      border: 0.5px solid;
+    `;
+    this.badge.textContent = this.isMobile ? "tap" : "tab";
+
     this.wrapper.appendChild(this.prefix);
     this.wrapper.appendChild(this.suggestion);
+    this.wrapper.appendChild(this.badge);
     this.ghost.appendChild(this.wrapper);
 
     document.body.appendChild(this.ghost);
@@ -73,6 +95,8 @@ export class GhostRenderer {
     if (this.isMobile) {
       this.suggestion.addEventListener("click", this.handleTap);
       this.suggestion.addEventListener("touchend", this.handleTap);
+      this.badge.addEventListener("click", this.handleTap);
+      this.badge.addEventListener("touchend", this.handleTap);
     }
 
     // Sync styles
@@ -119,6 +143,14 @@ export class GhostRenderer {
     }
   };
 
+  /**
+   * Hide the badge permanently for this instance (e.g. after first accept)
+   */
+  disableBadge(): void {
+    this.showBadge = false;
+    this.badge.style.display = "none";
+  }
+
   syncStyles(): void {
     const computed = window.getComputedStyle(this.inputEl);
 
@@ -147,43 +179,70 @@ export class GhostRenderer {
     ];
 
     styles.forEach((prop) => {
-      this.ghost.style[prop as any] = computed[prop as any];
+      const value = computed.getPropertyValue(prop);
+      if (this.styleCache.get(prop) !== value) {
+        this.ghost.style.setProperty(prop, value);
+        this.styleCache.set(prop, value);
+      }
     });
 
     // Auto-calculate suggestion color based on input color
     // We take the computed color and reduce its opacity to 50%
     const inputColor = computed.color;
     // Check if user provided an override via CSS variable
-    const overrideColor = computed.getPropertyValue("--surmiser-suggestion-color").trim();
-    
-    if (overrideColor) {
-      this.suggestion.style.color = overrideColor;
-      this.suggestion.style.opacity = "1";
-    } else {
-      this.suggestion.style.color = inputColor;
-      this.suggestion.style.opacity = "0.5";
+    const overrideColor = computed
+      .getPropertyValue("--surmiser-suggestion-color")
+      .trim();
+
+    // Cache color logic too
+    const colorKey = `color:${inputColor}|override:${overrideColor}`;
+    if (this.styleCache.get("__color_composite") !== colorKey) {
+      if (overrideColor) {
+        this.suggestion.style.color = overrideColor;
+        this.suggestion.style.opacity = "1";
+        this.badge.style.color = overrideColor;
+        this.badge.style.borderColor = overrideColor;
+        this.badge.style.opacity = "1";
+      } else {
+        this.suggestion.style.color = inputColor;
+        this.suggestion.style.opacity = "0.5";
+        this.badge.style.color = inputColor;
+        this.badge.style.borderColor = inputColor;
+        this.badge.style.opacity = "0.5";
+      }
+      this.styleCache.set("__color_composite", colorKey);
     }
 
-    this.ghost.style.backgroundColor = "transparent";
-    this.ghost.style.borderColor = "transparent";
-
-    this.ghost.style.boxSizing = "border-box";
-
-    this.ghost.style.flexDirection = "row";
-    this.ghost.style.alignItems = "center";
-
-    this.ghost.style.justifyContent = "normal";
+    if (!this.styleCache.has("init")) {
+      this.ghost.style.backgroundColor = "transparent";
+      this.ghost.style.borderColor = "transparent";
+      this.ghost.style.boxSizing = "border-box";
+      this.ghost.style.flexDirection = "row";
+      this.ghost.style.alignItems = "center";
+      this.ghost.style.justifyContent = "normal";
+      this.styleCache.set("init", "true");
+    }
 
     this.syncScroll();
   }
 
   syncPosition(): void {
     const rect = this.inputEl.getBoundingClientRect();
-    const scrollX = window.scrollX;
-    const scrollY = window.scrollY;
+    const computed = window.getComputedStyle(this.inputEl);
+    const isFixed = computed.position === "fixed";
 
-    this.ghost.style.top = `${rect.top + scrollY}px`;
-    this.ghost.style.left = `${rect.left + scrollX}px`;
+    if (isFixed) {
+      this.ghost.style.position = "fixed";
+      this.ghost.style.top = `${rect.top}px`;
+      this.ghost.style.left = `${rect.left}px`;
+    } else {
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
+      this.ghost.style.position = "absolute";
+      this.ghost.style.top = `${rect.top + scrollY}px`;
+      this.ghost.style.left = `${rect.left + scrollX}px`;
+    }
+
     this.ghost.style.width = `${rect.width}px`;
     this.ghost.style.height = `${rect.height}px`;
   }
@@ -198,8 +257,12 @@ export class GhostRenderer {
 
     if (!suggestionText) {
       this.ghost.style.opacity = "0";
+      this.ghost.style.display = "none"; 
+      
+      this.badge.style.display = "none";
       if (this.isMobile) {
         this.suggestion.style.pointerEvents = "none";
+        this.badge.style.pointerEvents = "none";
       }
       if (this.lastAnnouncement) {
         this.liveRegion.textContent = "";
@@ -209,12 +272,18 @@ export class GhostRenderer {
     }
 
     this.ghost.style.display = "flex";
+    this.ghost.style.backgroundColor = "transparent";
     void this.ghost.offsetHeight;
     this.ghost.style.opacity = "1";
+    
+    // Only show badge if enabled
+    this.badge.style.display = this.showBadge ? "inline-block" : "none";
 
     if (this.isMobile) {
       this.suggestion.style.pointerEvents = "auto";
       this.suggestion.style.cursor = "pointer";
+      this.badge.style.pointerEvents = this.showBadge ? "auto" : "none";
+      this.badge.style.cursor = "pointer";
     }
 
     const prefixText = text
@@ -240,6 +309,8 @@ export class GhostRenderer {
     if (this.isMobile) {
       this.suggestion.removeEventListener("click", this.handleTap);
       this.suggestion.removeEventListener("touchend", this.handleTap);
+      this.badge.removeEventListener("click", this.handleTap);
+      this.badge.removeEventListener("touchend", this.handleTap);
     }
     if (window.visualViewport && this.viewportHandler) {
       window.visualViewport.removeEventListener("resize", this.viewportHandler);

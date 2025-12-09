@@ -14,10 +14,14 @@ export class SurmiserEngine {
 
     this.debounceTimer = setTimeout(() => {
       this.fetchSuggestion(ctx);
-    }, this.options.debounceMs || 200);
+    }, this.options.debounceMs ?? 200);
   }
 
   private async fetchSuggestion(ctx: SuggestionContext): Promise<void> {
+    const hasPerf = typeof performance !== 'undefined';
+    const startMark = `surmise-fetch-start-${Date.now()}`;
+    if (hasPerf) performance.mark(startMark);
+
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
 
@@ -39,6 +43,16 @@ export class SurmiserEngine {
         ) {
           this.currentSuggestion = suggestion;
           this.options.onSuggestion?.(suggestion);
+          
+          if (hasPerf) {
+            const endMark = `surmise-fetch-end-${Date.now()}`;
+            performance.mark(endMark);
+            try {
+                performance.measure('surmise-suggestion-fetch', startMark, endMark);
+            } catch (e) {
+                // Ignore measure errors (e.g. missing start mark)
+            }
+          }
           return;
         }
       } catch (err) {
@@ -49,6 +63,16 @@ export class SurmiserEngine {
 
     this.currentSuggestion = null;
     this.options.onSuggestion?.(null);
+    
+    if (hasPerf) {
+      const endMark = `surmise-fetch-end-${Date.now()}`;
+      performance.mark(endMark);
+      try {
+        performance.measure('surmise-suggestion-fetch-empty', startMark, endMark);
+      } catch (e) {
+        // Ignore
+      }
+    }
   }
 
   cancel(): void {
