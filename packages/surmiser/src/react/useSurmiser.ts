@@ -1,35 +1,41 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { attachSurmiser } from "../attach";
 import { localPredictive } from "../defaults";
-import type { Suggestion, SurmiserProvider } from "../types";
+import type { Suggestion, SurmiserOptions, SurmiserProvider } from "../types";
 import { useSurmiserContext } from "./SurmiserProvider";
 
-interface UseSurmiserOptions {
-  corpus?: string[];
-  providers?: SurmiserProvider[];
-  debounceMs?: number;
-  minConfidence?: number;
-  onAccept?: (s: Suggestion) => void;
+interface UseSurmiserOptions extends SurmiserOptions {
   value?: string;
 }
 
 /**
  * Primary API for composing autocomplete into your own components.
  *
+ * Works standalone or within a SurmiserProvider for shared configuration.
+ *
  * @example
  * ```tsx
- * // Zero Config
+ * // Standalone with default corpus
  * function EmailInput(props) {
  *   const { attachRef } = useSurmiser()
  *   return <YourCustomInput ref={attachRef} {...props} />
  * }
  *
- * // With custom corpus
+ * // Standalone with custom corpus
  * function CommandInput(props) {
  *   const { attachRef } = useSurmiser({
  *     corpus: ['git commit', 'git push', 'git pull']
  *   })
  *   return <input ref={attachRef} {...props} />
+ * }
+ *
+ * // Within Provider (inherits shared config)
+ * function App() {
+ *   return (
+ *     <SurmiserProvider corpus={['global', 'words']}>
+ *       <EmailInput />
+ *     </SurmiserProvider>
+ *   )
  * }
  * ```
  */
@@ -41,15 +47,12 @@ export function useSurmiser(options: UseSurmiserOptions = {}) {
 
   const onAcceptRef = useRef(options.onAccept);
 
-  if (!context) {
-    throw new Error("useSurmiser must be used within a SurmiserProvider");
-  }
-
+  const defaultProviders = useMemo(() => [localPredictive()], []);
   const {
-    providers: ctxProviders,
+    providers: ctxProviders = defaultProviders,
     debounceMs: ctxDebounce,
     minConfidence: ctxMinConf,
-  } = context;
+  } = context || {};
 
   onAcceptRef.current = options.onAccept;
 

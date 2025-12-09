@@ -73,7 +73,7 @@ export class GhostRenderer {
       pointer-events: none;
       margin-left: 4px;
       font-size: 0.5em;
-      background-color: #F9F9F9;
+      // background-color:hsl(0, 0.00%, %);
       font-weight: 500;
       border-radius: 3px;
       padding: 0 2px;
@@ -257,8 +257,8 @@ export class GhostRenderer {
 
     if (!suggestionText) {
       this.ghost.style.opacity = "0";
-      this.ghost.style.display = "none"; 
-      
+      this.ghost.style.display = "none";
+
       this.badge.style.display = "none";
       if (this.isMobile) {
         this.suggestion.style.pointerEvents = "none";
@@ -275,7 +275,7 @@ export class GhostRenderer {
     this.ghost.style.backgroundColor = "transparent";
     void this.ghost.offsetHeight;
     this.ghost.style.opacity = "1";
-    
+
     // Only show badge if enabled
     this.badge.style.display = this.showBadge ? "inline-block" : "none";
 

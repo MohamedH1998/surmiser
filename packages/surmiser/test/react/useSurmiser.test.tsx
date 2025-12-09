@@ -3,6 +3,7 @@ import { renderHook, cleanup } from '@testing-library/react';
 import { useSurmiser } from '../../src/react/useSurmiser';
 import { SurmiserProvider } from '../../src/react/SurmiserProvider';
 import React from 'react';
+import { localPredictive } from '../../src/providers';
 
 describe('useSurmiser', () => {
   afterEach(() => {
@@ -48,6 +49,34 @@ describe('useSurmiser', () => {
     const { result, rerender } = renderHook(() => useSurmiser({}), { wrapper });
     
     rerender();
+    expect(result.current.attachRef).toBeInstanceOf(Function);
+  });
+
+  it('works standalone without a Provider', () => {
+    const { result } = renderHook(() => useSurmiser({
+      corpus: ['hello', 'world']
+    }));
+    
+    expect(result.current.attachRef).toBeInstanceOf(Function);
+    expect(result.current.suggestion).toBeNull();
+  });
+
+  it('uses default corpus when no Provider and no options', () => {
+    const { result } = renderHook(() => useSurmiser());
+    
+    expect(result.current.attachRef).toBeInstanceOf(Function);
+    expect(result.current.suggestion).toBeNull();
+  });
+
+  it('standalone usage with custom providers', () => {
+    const mockProvider = {
+      getSuggestions: async () => []
+    };
+
+    const { result } = renderHook(() => useSurmiser({
+      providers: [localPredictive(mockProvider)]
+    }));
+    
     expect(result.current.attachRef).toBeInstanceOf(Function);
   });
 });

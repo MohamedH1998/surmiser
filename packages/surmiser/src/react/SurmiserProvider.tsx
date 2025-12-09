@@ -39,7 +39,9 @@ interface SurmiserProviderProps {
 }
 
 /**
- * Context provider for Surmiser. Wrap your app to enable autocomplete.
+ * Optional context provider for Surmiser. Use to share configuration across multiple inputs.
+ *
+ * Note: This provider is optional. Components can use useSurmiser() standalone without it.
  *
  * @example
  * ```tsx
@@ -48,7 +50,7 @@ interface SurmiserProviderProps {
  *   <App />
  * </SurmiserProvider>
  *
- * // Custom Simple Corpus
+ * // Custom Simple Corpus - shared across all inputs
  * <SurmiserProvider corpus={['hello', 'world']}>
  *   <App />
  * </SurmiserProvider>
@@ -57,6 +59,9 @@ interface SurmiserProviderProps {
  * <SurmiserProvider provider={customAPIProvider}>
  *   <App />
  * </SurmiserProvider>
+ *
+ * // Standalone usage (no provider needed)
+ * <SurmiserInput corpus={['standalone']} />
  * ```
  */
 export function SurmiserProvider({

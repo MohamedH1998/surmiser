@@ -10,20 +10,25 @@ interface SurmiserInputProps extends React.InputHTMLAttributes<HTMLInputElement>
 }
 
 /**
- * Convenience component for quick start.
+ * Convenience component for quick start. Works standalone or within a SurmiserProvider.
  *
  * For composition with your own components, use `useSurmiser()` hook instead.
  *
  * @example
  * ```tsx
- * // Quick start
+ * // Standalone with default corpus
  * <SurmiserInput placeholder="Email..." />
  *
- * // With custom corpus
+ * // Standalone with custom corpus
  * <SurmiserInput 
  *   corpus={['hello', 'world']} 
  *   placeholder="Type..." 
  * />
+ *
+ * // Within Provider (inherits shared config)
+ * <SurmiserProvider corpus={['global']}>
+ *   <SurmiserInput placeholder="Type..." />
+ * </SurmiserProvider>
  *
  * // For composition - use the hook
  * const { attachRef } = useSurmiser()
