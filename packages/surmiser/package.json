@@ -1,6 +1,6 @@
 {
   "name": "surmiser",
-  "version": "0.0.1-alpha.6",
+  "version": "0.0.1-alpha.7",
   "description": "The autocomplete primitive for the web. Add Smart Compose style predictive text to any input in minutes.",
   "keywords": [
     "autocomplete",
