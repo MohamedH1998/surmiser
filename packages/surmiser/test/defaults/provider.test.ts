@@ -59,5 +59,37 @@ describe('localPredictive Provider', () => {
     const result = await provider.suggest(ctx, new AbortController().signal);
     expect(result).toBeNull();
   });
+
+  it('handles trailing comma without duplication', async () => {
+    const provider = localPredictive(['hello, world']);
+    // User types "hello,"
+    const ctx = {
+      text: 'hello,',
+      cursorPosition: 6,
+      lastTokens: ['hello']
+    };
+
+    const result = await provider.suggest(ctx, new AbortController().signal);
+    
+    expect(result).not.toBeNull();
+    // Should return " world" NOT ", world" (comma already typed)
+    expect(result?.text).toBe(' world');
+  });
+
+  it('handles trailing comma with space', async () => {
+    const provider = localPredictive(['hello, world']);
+    // User types "hello, "
+    const ctx = {
+      text: 'hello, ',
+      cursorPosition: 7,
+      lastTokens: ['hello']
+    };
+
+    const result = await provider.suggest(ctx, new AbortController().signal);
+    
+    expect(result).not.toBeNull();
+    // Should return "world" (comma and space already typed)
+    expect(result?.text).toBe('world');
+  });
 });
 

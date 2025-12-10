@@ -66,7 +66,7 @@ describe('SurmiserEngine', () => {
     let resolveRequest: (val: any) => void;
     const slowProvider = {
       ...mockProvider,
-      suggest: vi.fn().mockImplementation((ctx, signal) => {
+      suggest: vi.fn().mockImplementation((_ctx, _signal) => {
         return new Promise((resolve) => {
           resolveRequest = resolve;
           // Hold the promise indefinitely until we manually resolve

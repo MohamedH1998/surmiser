@@ -5,7 +5,11 @@ import { defaultCorpus } from "./default-corpus";
 export function localPredictive(
   phrases: string[] = defaultCorpus
 ): SurmiserProvider {
-  const normalizedPhrases = phrases.map((p) => normalizeText(p));
+  const processedPhrases = phrases.map((p) => ({
+    text: normalizeText(p),
+    tokens: tokenize(p),
+  }));
+
   return {
     id: "local-predictive",
     priority: 10,
@@ -20,41 +24,14 @@ export function localPredictive(
         return null;
       }
 
-      // Strip trailing commas for matching
-      const inputForMatching = input.replace(/,\s*$/, "").trim();
+      const inputForMatching = input.replace(/[,''-]\s*$/, "").trim();
       if (!inputForMatching) return null;
-
-      // Check if we're mid-word
-      const isMidWord =
-        textBeforeCursor.length > 0 && !/\s$/.test(textBeforeCursor);
-
-      if (isMidWord) {
-        // Find phrases that start with input
-        let bestMatch: { phrase: string; score: number } | null = null;
-
-        for (const phrase of normalizedPhrases) {
-          if (
-            phrase.startsWith(inputForMatching) &&
-            phrase.length > inputForMatching.length
-          ) {
-            const score = input.length; // longer match = better
-            if (!bestMatch || score > bestMatch.score) {
-              bestMatch = { phrase, score };
-            }
-          }
-        }
-
-        if (bestMatch) {
-          return {
-            text: bestMatch.phrase.slice(inputForMatching.length),
-            confidence: 85,
-            providerId: "local-predictive",
-          };
-        }
-      }
 
       const inputTokens = tokenize(inputForMatching);
       if (inputTokens.length === 0) return null;
+
+      const isMidWord =
+        textBeforeCursor.length > 0 && !/\s$/.test(textBeforeCursor);
 
       let bestMatch: {
         text: string;
@@ -63,42 +40,75 @@ export function localPredictive(
       } | null = null;
 
       for (let matchLen = inputTokens.length; matchLen >= 1; matchLen--) {
-        // Only match single tokens if input is single token
-        if (matchLen === 1 && inputTokens.length > 1) {
-          continue;
-        }
-        const prefix = inputTokens.slice(-matchLen);
-        for (const phrase of normalizedPhrases) {
-          const phraseTokens = tokenize(phrase);
+        const inputPrefix = inputTokens.slice(-matchLen);
+        const inputLastToken = inputPrefix[matchLen - 1];
+        let foundMatchAtThisLevel = false;
 
-          const phrasePrefix = phraseTokens.slice(0, matchLen).join(" ");
-          const inputPrefix = prefix.join(" ");
+        for (const { tokens: phraseTokens } of processedPhrases) {
+          if (phraseTokens.length < matchLen) continue;
 
-          if (phrasePrefix === inputPrefix && phraseTokens.length > matchLen) {
-            const remainingTokens = phraseTokens.slice(matchLen);
-
-            const suggestion = remainingTokens.join(" ");
-            const confidence = matchLen >= 3 ? 95 : matchLen >= 2 ? 90 : 80;
-
-            if (!bestMatch || matchLen > bestMatch.matchLen) {
-              bestMatch = { text: suggestion, confidence, matchLen };
+          let isMatch = true;
+          for (let i = 0; i < matchLen - 1; i++) {
+            if (phraseTokens[i] !== inputPrefix[i]) {
+              isMatch = false;
+              break;
             }
           }
+          if (!isMatch) continue;
+
+          const phraseLastToken = phraseTokens[matchLen - 1];
+
+          if (isMidWord) {
+            if (!phraseLastToken.startsWith(inputLastToken)) {
+              isMatch = false;
+            }
+          } else {
+            if (phraseLastToken !== inputLastToken) {
+              isMatch = false;
+            }
+          }
+
+          if (isMatch) {
+            foundMatchAtThisLevel = true;
+
+            let suggestionText = "";
+
+            if (isMidWord) {
+              suggestionText += phraseLastToken.slice(inputLastToken.length);
+            }
+
+            const remainingTokens = phraseTokens.slice(matchLen);
+            if (remainingTokens.length > 0) {
+              const remainingText = remainingTokens.join(" ");
+              if (suggestionText) {
+                suggestionText += " " + remainingText;
+              } else if (isMidWord) {
+                suggestionText = " " + remainingText;
+              } else {
+                suggestionText = remainingText;
+              }
+            }
+
+            const confidence = matchLen >= 3 ? 95 : matchLen >= 2 ? 90 : 80;
+
+            // Update best match if this is better (longer match or first found)
+            if (
+              suggestionText &&
+              (!bestMatch || matchLen > bestMatch.matchLen)
+            ) {
+              bestMatch = { text: suggestionText, confidence, matchLen };
+            }
+          }
+        }
+
+        if (foundMatchAtThisLevel) {
+          break;
         }
       }
 
       if (bestMatch) {
-        const needsSpace = !/\s$/.test(textBeforeCursor);
-        let text = bestMatch.text;
-
-        if (needsSpace && !text.startsWith(" ")) {
-          text = " " + text;
-        } else if (!needsSpace && text.startsWith(" ")) {
-          text = text.trimStart();
-        }
-
         return {
-          text,
+          text: bestMatch.text,
           confidence: bestMatch.confidence,
           providerId: "local-predictive",
         };

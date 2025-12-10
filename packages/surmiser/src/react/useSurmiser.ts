@@ -13,6 +13,10 @@ interface UseSurmiserOptions extends SurmiserOptions {
  *
  * Works standalone or within a SurmiserProvider for shared configuration.
  *
+ * Corpus behavior:
+ * - Standalone (no Provider): `corpus` option replaces the default corpus
+ * - With Provider: `corpus` option adds to the Provider's corpus (additive)
+ *
  * @example
  * ```tsx
  * // Standalone with default corpus
@@ -21,7 +25,7 @@ interface UseSurmiserOptions extends SurmiserOptions {
  *   return <YourCustomInput ref={attachRef} {...props} />
  * }
  *
- * // Standalone with custom corpus
+ * // Standalone with custom corpus (replaces default)
  * function CommandInput(props) {
  *   const { attachRef } = useSurmiser({
  *     corpus: ['git commit', 'git push', 'git pull']
@@ -29,11 +33,11 @@ interface UseSurmiserOptions extends SurmiserOptions {
  *   return <input ref={attachRef} {...props} />
  * }
  *
- * // Within Provider (inherits shared config)
+ * // Within Provider (corpus is additive)
  * function App() {
  *   return (
  *     <SurmiserProvider corpus={['global', 'words']}>
- *       <EmailInput />
+ *       <CommandInput /> // Uses both 'global, words' AND git commands
  *     </SurmiserProvider>
  *   )
  * }
@@ -70,7 +74,9 @@ export function useSurmiser(options: UseSurmiserOptions = {}) {
     if (options.providers) {
       finalProviders = options.providers;
     } else if (options.corpus) {
-      finalProviders = [...ctxProviders, localPredictive(options.corpus)];
+      finalProviders = context 
+        ? [...ctxProviders, localPredictive(options.corpus)]
+        : [localPredictive(options.corpus)];
     } else {
       finalProviders = ctxProviders;
     }
@@ -98,6 +104,7 @@ export function useSurmiser(options: UseSurmiserOptions = {}) {
     ctxDebounce,
     ctxMinConf,
     ctxProviders,
+    context,
   ]);
 
   return { attachRef, suggestion };

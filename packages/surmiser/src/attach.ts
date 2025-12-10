@@ -147,6 +147,7 @@ export function attachSurmiser(
       inputEl.dispatchEvent(new Event("input", { bubbles: true }));
     } else {
       lastValue = inputEl.value;
+      inputEl.scrollLeft = inputEl.scrollWidth;
     }
 
     engine.clearSuggestion();

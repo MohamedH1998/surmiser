@@ -259,7 +259,22 @@ function App() {
 }
 ```
 
-**Additive vs Replacement Behavior:**
+**Corpus Behavior: Additive vs Replacement**
+
+The `corpus` option behaves differently depending on whether you're using a Provider:
+
+**Standalone (No Provider):**
+- `corpus` **replaces** the default corpus
+
+```tsx
+// Uses ONLY gitCommands (default corpus is replaced)
+const { attachRef } = useSurmiser({
+  corpus: ['git commit', 'git push']
+});
+```
+
+**With Provider:**
+- `corpus` is **additive** (adds to Provider's corpus)
 
 ```tsx
 <SurmiserProvider corpus={commonPhrases}>
