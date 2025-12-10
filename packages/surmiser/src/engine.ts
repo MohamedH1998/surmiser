@@ -18,7 +18,7 @@ export class SurmiserEngine {
   }
 
   private async fetchSuggestion(ctx: SuggestionContext): Promise<void> {
-    const hasPerf = typeof performance !== 'undefined';
+    const hasPerf = typeof performance !== "undefined";
     const startMark = `surmise-fetch-start-${Date.now()}`;
     if (hasPerf) performance.mark(startMark);
 
@@ -28,6 +28,8 @@ export class SurmiserEngine {
     const providers = [...this.options.providers!].sort(
       (a, b) => b.priority - a.priority
     );
+
+    let bestSuggestion: Suggestion | null = null;
 
     for (const provider of providers) {
       if (signal.aborted) return;
@@ -41,37 +43,35 @@ export class SurmiserEngine {
           suggestion &&
           suggestion.confidence >= (this.options.minConfidence || 70)
         ) {
-          this.currentSuggestion = suggestion;
-          this.options.onSuggestion?.(suggestion);
-          
-          if (hasPerf) {
-            const endMark = `surmise-fetch-end-${Date.now()}`;
-            performance.mark(endMark);
-            try {
-                performance.measure('surmise-suggestion-fetch', startMark, endMark);
-            } catch (e) {
-                // Ignore measure errors (e.g. missing start mark)
-            }
+          if (suggestion.confidence >= 95) {
+            this.currentSuggestion = suggestion;
+            this.options.onSuggestion?.(suggestion);
+            return;
           }
-          return;
+
+          if (
+            !bestSuggestion ||
+            suggestion.confidence > bestSuggestion.confidence
+          ) {
+            bestSuggestion = suggestion;
+          }
         }
       } catch (err) {
-        if (signal.aborted) return;
-        console.warn(`Provider ${provider.id} failed:`, err);
+        console.error(`Surmiser provider ${provider.id} error:`, err);
       }
     }
 
-    this.currentSuggestion = null;
-    this.options.onSuggestion?.(null);
-    
-    if (hasPerf) {
-      const endMark = `surmise-fetch-end-${Date.now()}`;
-      performance.mark(endMark);
-      try {
-        performance.measure('surmise-suggestion-fetch-empty', startMark, endMark);
-      } catch (e) {
-        // Ignore
+    if (bestSuggestion) {
+      this.currentSuggestion = bestSuggestion;
+      this.options.onSuggestion?.(bestSuggestion);
+
+      if (hasPerf) {
+        const endMark = `surmise-fetch-end-${Date.now()}`;
+        performance.mark(endMark);
       }
+    } else {
+      this.currentSuggestion = null;
+      this.options.onSuggestion?.(null);
     }
   }
 

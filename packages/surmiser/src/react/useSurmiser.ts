@@ -75,7 +75,7 @@ export function useSurmiser(options: UseSurmiserOptions = {}) {
       finalProviders = options.providers;
     } else if (options.corpus) {
       finalProviders = context 
-        ? [...ctxProviders, localPredictive(options.corpus)]
+        ? [localPredictive(options.corpus), ...ctxProviders]
         : [localPredictive(options.corpus)];
     } else {
       finalProviders = ctxProviders;
