@@ -84,7 +84,7 @@ const VanillaCustomExample = () => {
   return (
     <input
       ref={inputRef}
-      placeholder="Type 'thanks', 'thank', 'sounds'..."
+      placeholder="Type 'custom', 'lol', 'hi'..."
       className="w-full p-3 border rounded"
     />
   );
@@ -112,7 +112,7 @@ const StandaloneCustomCorpus = () => {
   return (
     <Input
       ref={attachRef}
-      placeholder="Type 'arsenal', 'tottenham'..."
+      placeholder="Type 'arsenal', 'what'..."
       className="w-full p-3 border rounded"
     />
   );
@@ -141,7 +141,7 @@ const SurmiserInputWithCorpus = () => {
       value={value}
       onChange={e => setValue(e.target.value)}
       corpus={SPORTS}
-      placeholder="Type sports phrases..."
+      placeholder="Type arsenal/what phrases..."
       className="w-full p-3 border rounded"
     />
   );
