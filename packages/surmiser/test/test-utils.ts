@@ -7,7 +7,8 @@ afterEach(() => {
 });
 
 // Helper to delay (for testing debouncing)
-export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+export const delay = (ms: number) =>
+  new Promise(resolve => setTimeout(resolve, ms));
 
 // Mock Suggestion Context builder
 export const mockContext = (text: string) => ({

@@ -1,14 +1,14 @@
-import { describe, it, expect } from "vitest";
-import { SurmiserEngine } from "../../src/engine";
-import { localPredictive } from "../../src/defaults/provider";
-import type { SuggestionContext } from "../../src/types";
+import { describe, it, expect } from 'vitest';
+import { SurmiserEngine } from '../../src/engine';
+import { localPredictive } from '../../src/defaults/provider';
+import type { SuggestionContext } from '../../src/types';
 
-describe("High Throughput Stress Test", () => {
-  it("should handle rapid keystrokes without blocking", async () => {
+describe('High Throughput Stress Test', () => {
+  it('should handle rapid keystrokes without blocking', async () => {
     const provider = localPredictive([
-      "hello world",
-      "how are you",
-      "testing performance",
+      'hello world',
+      'how are you',
+      'testing performance',
     ]);
     const engine = new SurmiserEngine({
       providers: [provider],
@@ -24,7 +24,7 @@ describe("High Throughput Stress Test", () => {
       const iterStart = performance.now();
 
       const ctx: SuggestionContext = {
-        text: "hel",
+        text: 'hel',
         cursorPosition: 3,
         lastTokens: [],
       };
@@ -51,11 +51,11 @@ describe("High Throughput Stress Test", () => {
     engine.destroy();
   });
 
-  it("should process suggestions with low latency after debounce", async () => {
+  it('should process suggestions with low latency after debounce', async () => {
     const provider = localPredictive([
-      "hello world",
-      "how are you",
-      "testing performance",
+      'hello world',
+      'how are you',
+      'testing performance',
     ]);
 
     let suggestionReceived = false;
@@ -71,7 +71,7 @@ describe("High Throughput Stress Test", () => {
     });
 
     const ctx: SuggestionContext = {
-      text: "hel",
+      text: 'hel',
       cursorPosition: 3,
       lastTokens: [],
     };
@@ -80,7 +80,7 @@ describe("High Throughput Stress Test", () => {
     engine.requestSuggestion(ctx);
 
     // Wait for debounce + processing
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     expect(suggestionReceived).toBe(true);
     const latency = suggestionTime - start - 50; // Subtract debounce time

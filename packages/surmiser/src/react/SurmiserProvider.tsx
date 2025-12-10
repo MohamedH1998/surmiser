@@ -1,6 +1,6 @@
-import { createContext, useContext, useMemo } from "react";
-import type { SurmiserProvider as Provider } from "../types";
-import { localPredictive } from "../defaults";
+import { createContext, useContext, useMemo } from 'react';
+import type { SurmiserProvider as Provider } from '../types';
+import { localPredictive } from '../defaults';
 
 interface SurmiserContextValue {
   providers: Provider[];
@@ -18,21 +18,21 @@ interface SurmiserProviderProps {
   /**
    * Simple string array for quick setup.
    * Mutually exclusive with `provider`.
-   * 
+   *
    * @example corpus={['hello', 'world']}
    */
   corpus?: string[];
-  
+
   /**
    * Advanced: full Provider objects for custom logic (LLM, API, etc)
    * Mutually exclusive with `corpus`.
    * - Pass `string[]` for simple predictive text (same as corpus)
    * - Pass `Provider` or `Provider[]` for advanced use cases
-   * 
+   *
    * @example provider={customAPIProvider}
    */
   provider?: Provider | Provider[] | string[];
-  
+
   debounceMs?: number;
   minConfidence?: number;
   children: React.ReactNode;
@@ -72,11 +72,10 @@ export function SurmiserProvider({
   children,
 }: SurmiserProviderProps) {
   const providers = useMemo(() => {
-
     if (corpus && provider) {
       throw new Error(
         "SurmiserProvider: Cannot use both 'corpus' and 'provider'. " +
-        "Use 'corpus' for simple arrays, or 'provider' for advanced use cases."
+          "Use 'corpus' for simple arrays, or 'provider' for advanced use cases."
       );
     }
 
@@ -88,7 +87,7 @@ export function SurmiserProvider({
       return [localPredictive()];
     }
 
-    if (Array.isArray(provider) && typeof provider[0] === "string") {
+    if (Array.isArray(provider) && typeof provider[0] === 'string') {
       return [localPredictive(provider as string[])];
     }
 

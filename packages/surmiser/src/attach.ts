@@ -1,8 +1,8 @@
-import { SurmiserEngine } from "./engine";
-import { GhostRenderer } from "./renderer";
-import { buildContext } from "./context";
-import { localPredictive } from "./defaults";
-import type { SurmiserOptions, SurmiserProvider, Suggestion } from "./types";
+import { SurmiserEngine } from './engine';
+import { GhostRenderer } from './renderer';
+import { buildContext } from './context';
+import { localPredictive } from './defaults';
+import type { SurmiserOptions, SurmiserProvider, Suggestion } from './types';
 
 const SWIPE_THRESHOLD_PX = 50;
 
@@ -50,23 +50,23 @@ class SurmiserController {
     const { inputEl } = this;
 
     // Add event listeners (capture phase where appropriate)
-    inputEl.addEventListener("input", this.boundHandlers.input, true);
-    inputEl.addEventListener("keydown", this.boundHandlers.keydown, true);
-    inputEl.addEventListener("blur", this.boundHandlers.blur, true);
+    inputEl.addEventListener('input', this.boundHandlers.input, true);
+    inputEl.addEventListener('keydown', this.boundHandlers.keydown, true);
+    inputEl.addEventListener('blur', this.boundHandlers.blur, true);
     inputEl.addEventListener(
-      "compositionstart",
+      'compositionstart',
       this.boundHandlers.compositionstart,
       true
     );
     inputEl.addEventListener(
-      "compositionend",
+      'compositionend',
       this.boundHandlers.compositionend,
       true
     );
-    inputEl.addEventListener("touchstart", this.boundHandlers.touchstart, {
+    inputEl.addEventListener('touchstart', this.boundHandlers.touchstart, {
       passive: true,
     });
-    inputEl.addEventListener("touchend", this.boundHandlers.touchend, {
+    inputEl.addEventListener('touchend', this.boundHandlers.touchend, {
       passive: false,
     });
 
@@ -76,21 +76,21 @@ class SurmiserController {
   public detach(): void {
     const { inputEl } = this;
 
-    inputEl.removeEventListener("input", this.boundHandlers.input, true);
-    inputEl.removeEventListener("keydown", this.boundHandlers.keydown, true);
-    inputEl.removeEventListener("blur", this.boundHandlers.blur, true);
+    inputEl.removeEventListener('input', this.boundHandlers.input, true);
+    inputEl.removeEventListener('keydown', this.boundHandlers.keydown, true);
+    inputEl.removeEventListener('blur', this.boundHandlers.blur, true);
     inputEl.removeEventListener(
-      "compositionstart",
+      'compositionstart',
       this.boundHandlers.compositionstart,
       true
     );
     inputEl.removeEventListener(
-      "compositionend",
+      'compositionend',
       this.boundHandlers.compositionend,
       true
     );
-    inputEl.removeEventListener("touchstart", this.boundHandlers.touchstart);
-    inputEl.removeEventListener("touchend", this.boundHandlers.touchend);
+    inputEl.removeEventListener('touchstart', this.boundHandlers.touchstart);
+    inputEl.removeEventListener('touchend', this.boundHandlers.touchend);
 
     this.engine.destroy();
     this.renderer.destroy();
@@ -102,7 +102,7 @@ class SurmiserController {
     return new SurmiserEngine({
       ...this.options,
       providers,
-      onSuggestion: (suggestion) => {
+      onSuggestion: suggestion => {
         if (!this.isComposing && !this.isDismissed) {
           this.render(suggestion?.text || null);
         }
@@ -153,8 +153,10 @@ class SurmiserController {
     let success = false;
     if (document?.execCommand) {
       try {
-        success = document.execCommand("insertText", false, suggestion.text);
-      } catch (e) {}
+        success = document.execCommand('insertText', false, suggestion.text);
+      } catch {
+        // Ignore execCommand errors
+      }
     }
 
     if (!success) {
@@ -165,7 +167,7 @@ class SurmiserController {
 
       inputEl.setSelectionRange(newValue.length, newValue.length);
       inputEl.scrollLeft = inputEl.scrollWidth;
-      inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+      inputEl.dispatchEvent(new Event('input', { bubbles: true }));
     } else {
       this.lastValue = inputEl.value;
       inputEl.scrollLeft = inputEl.scrollWidth;
@@ -197,7 +199,7 @@ class SurmiserController {
     const cursorPos = this.inputEl.selectionStart || 0;
 
     // 1. Check for dismiss gesture (double space)
-    if (value.slice(0, cursorPos).endsWith("  ")) {
+    if (value.slice(0, cursorPos).endsWith('  ')) {
       this.lastValue = value;
       this.dismiss();
       return;
@@ -224,7 +226,7 @@ class SurmiserController {
   private shouldResetDismissedState(newValue: string): boolean {
     if (newValue.length > this.lastValue.length) {
       const typed = newValue.slice(this.lastValue.length);
-      return typed.trim() !== "";
+      return typed.trim() !== '';
     }
     return newValue.length < this.lastValue.length; // Reset on backspace
   }
@@ -236,13 +238,13 @@ class SurmiserController {
     const isCursorAtEnd =
       this.inputEl.selectionStart === this.inputEl.value.length;
 
-    if (e.key === "Tab") {
+    if (e.key === 'Tab') {
       e.preventDefault();
       this.accept(suggestion);
-    } else if (e.key === "ArrowRight" && isCursorAtEnd) {
+    } else if (e.key === 'ArrowRight' && isCursorAtEnd) {
       e.preventDefault();
       this.accept(suggestion);
-    } else if (e.key === "Escape") {
+    } else if (e.key === 'Escape') {
       this.dismiss();
     }
   }
@@ -287,10 +289,10 @@ class SurmiserController {
   }
 
   private setupAccessibility(): void {
-    if (!this.inputEl.hasAttribute("role")) {
-      this.inputEl.setAttribute("role", "textbox");
+    if (!this.inputEl.hasAttribute('role')) {
+      this.inputEl.setAttribute('role', 'textbox');
     }
-    this.inputEl.setAttribute("aria-autocomplete", "inline");
+    this.inputEl.setAttribute('aria-autocomplete', 'inline');
   }
 }
 
@@ -320,7 +322,7 @@ function computeDisplaySuggestion(
 function setInputValue(input: HTMLInputElement, value: string) {
   const setter = Object.getOwnPropertyDescriptor(
     HTMLInputElement.prototype,
-    "value"
+    'value'
   )?.set;
 
   if (setter) {

@@ -1,17 +1,17 @@
-import type { SurmiserProvider, SuggestionContext, Suggestion } from "../types";
-import { normalizeText, tokenize } from "./tokenizer";
-import { defaultCorpus } from "./default-corpus";
+import type { SurmiserProvider, SuggestionContext, Suggestion } from '../types';
+import { normalizeText, tokenize } from './tokenizer';
+import { defaultCorpus } from './default-corpus';
 
 export function localPredictive(
   phrases: string[] = defaultCorpus
 ): SurmiserProvider {
-  const processedPhrases = phrases.map((p) => ({
+  const processedPhrases = phrases.map(p => ({
     text: normalizeText(p),
     tokens: tokenize(p),
   }));
 
   return {
-    id: "local-predictive",
+    id: 'local-predictive',
     priority: 10,
 
     async suggest(ctx: SuggestionContext): Promise<Suggestion | null> {
@@ -20,11 +20,11 @@ export function localPredictive(
       if (!input) return null;
 
       // Allowed: apostrophes ('), hyphens (-), commas (,), spaces
-      if (/[.!?;:…@#$%^&*()+=\[\]{}|\\/<>`~]$/.test(textBeforeCursor.trim())) {
+      if (/[.!?;:…@#$%^&*()+=[\]{}|\\/<>`~]$/.test(textBeforeCursor.trim())) {
         return null;
       }
 
-      const inputForMatching = input.replace(/[,''-]\s*$/, "").trim();
+      const inputForMatching = input.replace(/[,''-]\s*$/, '').trim();
       if (!inputForMatching) return null;
 
       const inputTokens = tokenize(inputForMatching);
@@ -71,7 +71,7 @@ export function localPredictive(
           if (isMatch) {
             foundMatchAtThisLevel = true;
 
-            let suggestionText = "";
+            let suggestionText = '';
 
             if (isMidWord) {
               suggestionText += phraseLastToken.slice(inputLastToken.length);
@@ -79,11 +79,11 @@ export function localPredictive(
 
             const remainingTokens = phraseTokens.slice(matchLen);
             if (remainingTokens.length > 0) {
-              const remainingText = remainingTokens.join(" ");
+              const remainingText = remainingTokens.join(' ');
               if (suggestionText) {
-                suggestionText += " " + remainingText;
+                suggestionText += ' ' + remainingText;
               } else if (isMidWord) {
-                suggestionText = " " + remainingText;
+                suggestionText = ' ' + remainingText;
               } else {
                 suggestionText = remainingText;
               }
@@ -110,7 +110,7 @@ export function localPredictive(
         return {
           text: bestMatch.text,
           confidence: bestMatch.confidence,
-          providerId: "local-predictive",
+          providerId: 'local-predictive',
         };
       }
 

@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsup'
+import { defineConfig } from 'tsup';
 
 export default defineConfig({
   entry: {
@@ -12,4 +12,4 @@ export default defineConfig({
   sourcemap: true,
   minify: false,
   external: ['react'],
-})
+});

@@ -14,16 +14,16 @@ describe('Concurrent Usage Stress Test', () => {
       input.id = `input-${i}`;
       document.body.appendChild(input);
       inputs.push(input);
-      
+
       // Each input gets a unique corpus
       const uniqueWord = `unique${i}`;
       const cleanup = attachSurmiser(input, {
         corpus: [uniqueWord],
         debounceMs: 10,
-        onSuggestion: (suggestion) =>{
+        onSuggestion: suggestion => {
           expect(input.value).toBe(`uni`);
           expect(suggestion?.text).toBe(`que${i}`);
-        }
+        },
       });
       cleanups.push(cleanup);
     }
@@ -31,12 +31,12 @@ describe('Concurrent Usage Stress Test', () => {
     // Test specific input
     const targetIndex = 5;
     const targetInput = inputs[targetIndex];
-    
+
     // Simulate typing
     targetInput.value = 'uni';
     targetInput.dispatchEvent(new Event('input', { bubbles: true }));
     targetInput.focus(); // Ghost renderer often relies on focus or layout
-    
+
     // Wait for suggestion
     await delay(50);
   });
@@ -50,14 +50,14 @@ describe('Concurrent Usage Stress Test', () => {
       const input = document.createElement('input');
       document.body.appendChild(input);
       inputs.push(input);
-      
+
       const callback = vi.fn();
       callbacks.set(i, callback);
 
       attachSurmiser(input, {
         corpus: [`unique${i}`],
         debounceMs: 10,
-        onSuggestion: callback
+        onSuggestion: callback,
       });
     }
 
@@ -81,4 +81,3 @@ describe('Concurrent Usage Stress Test', () => {
     inputs.forEach(el => document.body.removeChild(el));
   });
 });
-

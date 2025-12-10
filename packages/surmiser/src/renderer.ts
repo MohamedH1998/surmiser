@@ -11,20 +11,23 @@ export class GhostRenderer {
   private viewportHandler: (() => void) | null = null;
   private onAccept?: () => void;
   private isMobile: boolean;
-  private lastAnnouncement: string = "";
+  private lastAnnouncement: string = '';
   private styleCache: Map<string, string> = new Map();
   private showBadge: boolean = true;
 
-  constructor(private inputEl: HTMLInputElement, onAccept?: () => void) {
+  constructor(
+    private inputEl: HTMLInputElement,
+    onAccept?: () => void
+  ) {
     this.onAccept = onAccept;
     this.isMobile = this.detectTouchDevice();
 
-    inputEl.setAttribute("aria-autocomplete", "inline");
+    inputEl.setAttribute('aria-autocomplete', 'inline');
 
     // Create screen reader live region for announcements
-    this.liveRegion = document.createElement("div");
-    this.liveRegion.setAttribute("aria-live", "polite");
-    this.liveRegion.setAttribute("aria-atomic", "true");
+    this.liveRegion = document.createElement('div');
+    this.liveRegion.setAttribute('aria-live', 'polite');
+    this.liveRegion.setAttribute('aria-atomic', 'true');
     this.liveRegion.style.cssText = `
       position: absolute;
       width: 1px;
@@ -39,8 +42,8 @@ export class GhostRenderer {
     document.body.appendChild(this.liveRegion);
 
     // Create ghost overlay attached to body to avoid disturbing React DOM
-    this.ghost = document.createElement("div");
-    this.ghost.setAttribute("aria-hidden", "true");
+    this.ghost = document.createElement('div');
+    this.ghost.setAttribute('aria-hidden', 'true');
     this.ghost.style.cssText = `
       position: absolute;
       pointer-events: none;
@@ -53,13 +56,13 @@ export class GhostRenderer {
       transition: opacity 50ms ease-out;
     `;
 
-    this.wrapper = document.createElement("div");
-    this.wrapper.style.width = "100%";
+    this.wrapper = document.createElement('div');
+    this.wrapper.style.width = '100%';
 
-    this.prefix = document.createElement("span");
-    this.prefix.style.cssText = "opacity: 0;";
+    this.prefix = document.createElement('span');
+    this.prefix.style.cssText = 'opacity: 0;';
 
-    this.suggestion = document.createElement("span");
+    this.suggestion = document.createElement('span');
     // Default style, but color will be computed dynamically based on input color
     this.suggestion.style.cssText = `
       opacity: 0.5;
@@ -67,7 +70,7 @@ export class GhostRenderer {
     `;
 
     // Create badge
-    this.badge = document.createElement("span");
+    this.badge = document.createElement('span');
     this.badge.style.cssText = `
       opacity: 0.5;
       pointer-events: none;
@@ -82,7 +85,7 @@ export class GhostRenderer {
       line-height: 1.5em;
       border: 0.5px solid;
     `;
-    this.badge.textContent = this.isMobile ? "tap" : "tab";
+    this.badge.textContent = this.isMobile ? 'tap' : 'tab';
 
     this.wrapper.appendChild(this.prefix);
     this.wrapper.appendChild(this.suggestion);
@@ -93,10 +96,10 @@ export class GhostRenderer {
 
     // Tap-to-accept handler (mobile only, only active when suggestion visible)
     if (this.isMobile) {
-      this.suggestion.addEventListener("click", this.handleTap);
-      this.suggestion.addEventListener("touchend", this.handleTap);
-      this.badge.addEventListener("click", this.handleTap);
-      this.badge.addEventListener("touchend", this.handleTap);
+      this.suggestion.addEventListener('click', this.handleTap);
+      this.suggestion.addEventListener('touchend', this.handleTap);
+      this.badge.addEventListener('click', this.handleTap);
+      this.badge.addEventListener('touchend', this.handleTap);
     }
 
     // Sync styles
@@ -116,22 +119,22 @@ export class GhostRenderer {
     };
     this.windowResizeHandler = () => this.syncPosition();
 
-    inputEl.addEventListener("scroll", this.scrollHandler);
-    window.addEventListener("resize", this.windowResizeHandler);
-    window.addEventListener("scroll", this.windowResizeHandler, true);
+    inputEl.addEventListener('scroll', this.scrollHandler);
+    window.addEventListener('resize', this.windowResizeHandler);
+    window.addEventListener('scroll', this.windowResizeHandler, true);
 
     if (window.visualViewport) {
       this.viewportHandler = () => this.syncPosition();
-      window.visualViewport.addEventListener("resize", this.viewportHandler);
-      window.visualViewport.addEventListener("scroll", this.viewportHandler);
+      window.visualViewport.addEventListener('resize', this.viewportHandler);
+      window.visualViewport.addEventListener('scroll', this.viewportHandler);
     }
   }
 
   private detectTouchDevice(): boolean {
     return (
-      "ontouchstart" in window ||
+      'ontouchstart' in window ||
       navigator.maxTouchPoints > 0 ||
-      window.matchMedia("(pointer: coarse)").matches
+      window.matchMedia('(pointer: coarse)').matches
     );
   }
 
@@ -148,37 +151,37 @@ export class GhostRenderer {
    */
   disableBadge(): void {
     this.showBadge = false;
-    this.badge.style.display = "none";
+    this.badge.style.display = 'none';
   }
 
   syncStyles(): void {
     const computed = window.getComputedStyle(this.inputEl);
 
     const styles = [
-      "font-family",
-      "font-size",
-      "font-weight",
-      "font-style",
-      "letter-spacing",
-      "padding-right",
-      "padding-left",
-      "border-top-width",
-      "border-right-width",
-      "border-bottom-width",
-      "border-left-width",
-      "border-top-style",
-      "border-right-style",
-      "padding-top",
-      "padding-bottom",
-      "border-bottom-style",
-      "border-left-style",
-      "line-height",
-      "text-align",
-      "text-transform",
-      "text-indent",
+      'font-family',
+      'font-size',
+      'font-weight',
+      'font-style',
+      'letter-spacing',
+      'padding-right',
+      'padding-left',
+      'border-top-width',
+      'border-right-width',
+      'border-bottom-width',
+      'border-left-width',
+      'border-top-style',
+      'border-right-style',
+      'padding-top',
+      'padding-bottom',
+      'border-bottom-style',
+      'border-left-style',
+      'line-height',
+      'text-align',
+      'text-transform',
+      'text-indent',
     ];
 
-    styles.forEach((prop) => {
+    styles.forEach(prop => {
       const value = computed.getPropertyValue(prop);
       if (this.styleCache.get(prop) !== value) {
         this.ghost.style.setProperty(prop, value);
@@ -191,36 +194,36 @@ export class GhostRenderer {
     const inputColor = computed.color;
     // Check if user provided an override via CSS variable
     const overrideColor = computed
-      .getPropertyValue("--surmiser-suggestion-color")
+      .getPropertyValue('--surmiser-suggestion-color')
       .trim();
 
     // Cache color logic too
     const colorKey = `color:${inputColor}|override:${overrideColor}`;
-    if (this.styleCache.get("__color_composite") !== colorKey) {
+    if (this.styleCache.get('__color_composite') !== colorKey) {
       if (overrideColor) {
         this.suggestion.style.color = overrideColor;
-        this.suggestion.style.opacity = "1";
+        this.suggestion.style.opacity = '1';
         this.badge.style.color = overrideColor;
         this.badge.style.borderColor = overrideColor;
-        this.badge.style.opacity = "1";
+        this.badge.style.opacity = '1';
       } else {
         this.suggestion.style.color = inputColor;
-        this.suggestion.style.opacity = "0.5";
+        this.suggestion.style.opacity = '0.5';
         this.badge.style.color = inputColor;
         this.badge.style.borderColor = inputColor;
-        this.badge.style.opacity = "0.5";
+        this.badge.style.opacity = '0.5';
       }
-      this.styleCache.set("__color_composite", colorKey);
+      this.styleCache.set('__color_composite', colorKey);
     }
 
-    if (!this.styleCache.has("init")) {
-      this.ghost.style.backgroundColor = "transparent";
-      this.ghost.style.borderColor = "transparent";
-      this.ghost.style.boxSizing = "border-box";
-      this.ghost.style.flexDirection = "row";
-      this.ghost.style.alignItems = "center";
-      this.ghost.style.justifyContent = "normal";
-      this.styleCache.set("init", "true");
+    if (!this.styleCache.has('init')) {
+      this.ghost.style.backgroundColor = 'transparent';
+      this.ghost.style.borderColor = 'transparent';
+      this.ghost.style.boxSizing = 'border-box';
+      this.ghost.style.flexDirection = 'row';
+      this.ghost.style.alignItems = 'center';
+      this.ghost.style.justifyContent = 'normal';
+      this.styleCache.set('init', 'true');
     }
 
     this.syncScroll();
@@ -229,16 +232,16 @@ export class GhostRenderer {
   syncPosition(): void {
     const rect = this.inputEl.getBoundingClientRect();
     const computed = window.getComputedStyle(this.inputEl);
-    const isFixed = computed.position === "fixed";
+    const isFixed = computed.position === 'fixed';
 
     if (isFixed) {
-      this.ghost.style.position = "fixed";
+      this.ghost.style.position = 'fixed';
       this.ghost.style.top = `${rect.top}px`;
       this.ghost.style.left = `${rect.left}px`;
     } else {
       const scrollX = window.scrollX;
       const scrollY = window.scrollY;
-      this.ghost.style.position = "absolute";
+      this.ghost.style.position = 'absolute';
       this.ghost.style.top = `${rect.top + scrollY}px`;
       this.ghost.style.left = `${rect.left + scrollX}px`;
     }
@@ -256,39 +259,39 @@ export class GhostRenderer {
     this.syncPosition();
 
     if (!suggestionText) {
-      this.ghost.style.opacity = "0";
-      this.ghost.style.display = "none";
+      this.ghost.style.opacity = '0';
+      this.ghost.style.display = 'none';
 
-      this.badge.style.display = "none";
+      this.badge.style.display = 'none';
       if (this.isMobile) {
-        this.suggestion.style.pointerEvents = "none";
-        this.badge.style.pointerEvents = "none";
+        this.suggestion.style.pointerEvents = 'none';
+        this.badge.style.pointerEvents = 'none';
       }
       if (this.lastAnnouncement) {
-        this.liveRegion.textContent = "";
-        this.lastAnnouncement = "";
+        this.liveRegion.textContent = '';
+        this.lastAnnouncement = '';
       }
       return;
     }
 
-    this.ghost.style.display = "flex";
-    this.ghost.style.backgroundColor = "transparent";
+    this.ghost.style.display = 'flex';
+    this.ghost.style.backgroundColor = 'transparent';
     void this.ghost.offsetHeight;
-    this.ghost.style.opacity = "1";
+    this.ghost.style.opacity = '1';
 
     // Only show badge if enabled
-    this.badge.style.display = this.showBadge ? "inline-block" : "none";
+    this.badge.style.display = this.showBadge ? 'inline-block' : 'none';
 
     if (this.isMobile) {
-      this.suggestion.style.pointerEvents = "auto";
-      this.suggestion.style.cursor = "pointer";
-      this.badge.style.pointerEvents = this.showBadge ? "auto" : "none";
-      this.badge.style.cursor = "pointer";
+      this.suggestion.style.pointerEvents = 'auto';
+      this.suggestion.style.cursor = 'pointer';
+      this.badge.style.pointerEvents = this.showBadge ? 'auto' : 'none';
+      this.badge.style.cursor = 'pointer';
     }
 
     const prefixText = text
       .slice(0, cursorPos)
-      .replace(/\s+$/, (spaces) => "\u00A0".repeat(spaces.length));
+      .replace(/\s+$/, spaces => '\u00A0'.repeat(spaces.length));
     this.prefix.textContent = prefixText;
     this.suggestion.textContent = suggestionText;
 
@@ -302,19 +305,19 @@ export class GhostRenderer {
 
   destroy(): void {
     this.resizeObserver.disconnect();
-    this.inputEl.removeEventListener("scroll", this.scrollHandler);
-    this.inputEl.removeAttribute("aria-autocomplete");
-    window.removeEventListener("resize", this.windowResizeHandler);
-    window.removeEventListener("scroll", this.windowResizeHandler, true);
+    this.inputEl.removeEventListener('scroll', this.scrollHandler);
+    this.inputEl.removeAttribute('aria-autocomplete');
+    window.removeEventListener('resize', this.windowResizeHandler);
+    window.removeEventListener('scroll', this.windowResizeHandler, true);
     if (this.isMobile) {
-      this.suggestion.removeEventListener("click", this.handleTap);
-      this.suggestion.removeEventListener("touchend", this.handleTap);
-      this.badge.removeEventListener("click", this.handleTap);
-      this.badge.removeEventListener("touchend", this.handleTap);
+      this.suggestion.removeEventListener('click', this.handleTap);
+      this.suggestion.removeEventListener('touchend', this.handleTap);
+      this.badge.removeEventListener('click', this.handleTap);
+      this.badge.removeEventListener('touchend', this.handleTap);
     }
     if (window.visualViewport && this.viewportHandler) {
-      window.visualViewport.removeEventListener("resize", this.viewportHandler);
-      window.visualViewport.removeEventListener("scroll", this.viewportHandler);
+      window.visualViewport.removeEventListener('resize', this.viewportHandler);
+      window.visualViewport.removeEventListener('scroll', this.viewportHandler);
     }
     this.ghost.remove();
     this.liveRegion.remove();

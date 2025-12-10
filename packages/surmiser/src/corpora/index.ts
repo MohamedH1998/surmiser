@@ -1,2 +1,1 @@
-export { defaultCorpus } from '../defaults/default-corpus'
-
+export { defaultCorpus } from '../defaults/default-corpus';

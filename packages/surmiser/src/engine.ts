@@ -1,4 +1,4 @@
-import type { SuggestionContext, Suggestion, SurmiserOptions } from "./types";
+import type { SuggestionContext, Suggestion, SurmiserOptions } from './types';
 
 export class SurmiserEngine {
   private abortController: AbortController | null = null;
@@ -18,7 +18,7 @@ export class SurmiserEngine {
   }
 
   private async fetchSuggestion(ctx: SuggestionContext): Promise<void> {
-    const hasPerf = typeof performance !== "undefined";
+    const hasPerf = typeof performance !== 'undefined';
     const startMark = `surmise-fetch-start-${Date.now()}`;
     if (hasPerf) performance.mark(startMark);
 

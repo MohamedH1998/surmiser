@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { SurmiserProvider, SurmiserInput, useSurmiser } from "surmiser/react";
-import { Input } from "./components/ui/input";
+import { useState } from 'react';
+import { SurmiserProvider, SurmiserInput, useSurmiser } from 'surmiser/react';
+import { Input } from './components/ui/input';
 
 const DEV_TERMS = [
-  "feature request",
-  "bug report",
-  "deploy to prod",
-  "rollback",
-  "thanks",
-  "let me know"
+  'feature request',
+  'bug report',
+  'deploy to prod',
+  'rollback',
+  'thanks',
+  'let me know',
 ];
 
 function ShadcnExample() {
@@ -21,14 +21,14 @@ function ShadcnExample() {
 }
 
 function App() {
-  const [text1, setText1] = useState("");
-  const [text2, setText2] = useState("");
+  const [text1, setText1] = useState('');
+  const [text2, setText2] = useState('');
 
   return (
-    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "2rem" }}>
+    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
       <h1 className="text-3xl font-bold mb-6">Surmiser Playground</h1>
 
-      <section style={{ marginBottom: "2rem" }}>
+      <section style={{ marginBottom: '2rem' }}>
         <h2 className="text-xl font-semibold mb-2">1. Zero Config (Default)</h2>
         <p className="mb-4">Try typing: "thanks", "let me", "sounds"</p>
         <SurmiserProvider>
@@ -38,7 +38,7 @@ function App() {
             </p>
             <SurmiserInput
               value={text1}
-              onChange={(e) => setText1(e.target.value)}
+              onChange={e => setText1(e.target.value)}
               placeholder="Type here..."
               className="w-full p-4 text-lg border border-gray-300 rounded"
             />
@@ -46,13 +46,13 @@ function App() {
         </SurmiserProvider>
       </section>
 
-      <section style={{ marginBottom: "2rem" }}>
+      <section style={{ marginBottom: '2rem' }}>
         <h2 className="text-xl font-semibold mb-2">2. Custom Simple Corpus</h2>
         <p className="mb-4">Try typing: "feature", "bug", "deploy"</p>
         <SurmiserProvider provider={DEV_TERMS}>
           <SurmiserInput
             value={text2}
-            onChange={(e) => setText2(e.target.value)}
+            onChange={e => setText2(e.target.value)}
             placeholder="Type dev terms..."
             className="w-full p-4 text-lg border border-gray-300 rounded"
           />
@@ -63,7 +63,7 @@ function App() {
         <h2 className="text-xl font-semibold mb-2">3. Shadcn UI Input</h2>
         <p className="mb-4">Try typing: "thanks", "let me"</p>
         <SurmiserProvider>
-             <ShadcnExample />
+          <ShadcnExample />
         </SurmiserProvider>
       </section>
     </div>

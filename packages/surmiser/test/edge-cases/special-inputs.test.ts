@@ -10,13 +10,13 @@ describe('Special Inputs Edge Cases', () => {
   beforeEach(() => {
     input = document.createElement('input');
     document.body.appendChild(input);
-    
+
     options = {
       providers: [],
       onSuggestion: vi.fn(),
       onAccept: vi.fn(),
       minConfidence: 0,
-      debounceMs: 0
+      debounceMs: 0,
     };
   });
 
@@ -27,9 +27,11 @@ describe('Special Inputs Edge Cases', () => {
   });
 
   it('handles emoji input correctly', async () => {
-    const suggestMock = vi.fn().mockResolvedValue({ text: '👋 world', confidence: 100 });
+    const suggestMock = vi
+      .fn()
+      .mockResolvedValue({ text: '👋 world', confidence: 100 });
     options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
-    
+
     detach = attachSurmiser(input, options);
 
     // Simulate typing "hello 👋"
@@ -45,19 +47,21 @@ describe('Special Inputs Edge Cases', () => {
   });
 
   it('handles pasting large text gracefully', async () => {
-    const suggestMock = vi.fn().mockResolvedValue({ text: 'ignored', confidence: 100 });
+    const suggestMock = vi
+      .fn()
+      .mockResolvedValue({ text: 'ignored', confidence: 100 });
     options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
     detach = attachSurmiser(input, options);
 
     // Create large text
     const largeText = 'a'.repeat(5000);
     input.value = largeText;
-    
+
     // Simulate paste event
     const pasteEvent = new InputEvent('input', {
       inputType: 'insertFromPaste',
       bubbles: true,
-      data: largeText
+      data: largeText,
     });
     input.dispatchEvent(pasteEvent);
 
@@ -69,24 +73,29 @@ describe('Special Inputs Edge Cases', () => {
 
   it('clears suggestions on select-all and delete', async () => {
     // Mock that returns null if text is empty
-    const suggestMock = vi.fn().mockImplementation(async (ctx) => {
+    const suggestMock = vi.fn().mockImplementation(async ctx => {
       if (!ctx.text) return null;
       return { text: 'suggestion', confidence: 100 };
     });
 
-    options.providers = [{ 
-      id: 'mock', priority: 1, 
-      suggest: suggestMock
-    }];
+    options.providers = [
+      {
+        id: 'mock',
+        priority: 1,
+        suggest: suggestMock,
+      },
+    ];
     detach = attachSurmiser(input, options);
 
     // Start with some text
     input.value = 'some text';
     input.dispatchEvent(new Event('input'));
     await new Promise(r => setTimeout(r, 10));
-    
+
     // Check we got a suggestion
-    expect(options.onSuggestion).toHaveBeenCalledWith(expect.objectContaining({ text: 'suggestion' }));
+    expect(options.onSuggestion).toHaveBeenCalledWith(
+      expect.objectContaining({ text: 'suggestion' })
+    );
 
     // Select all and delete (empty input)
     input.value = '';
@@ -98,7 +107,9 @@ describe('Special Inputs Edge Cases', () => {
   });
 
   it('handles browser autofill simulation', async () => {
-    const suggestMock = vi.fn().mockResolvedValue({ text: 'autofilled-completion', confidence: 100 });
+    const suggestMock = vi
+      .fn()
+      .mockResolvedValue({ text: 'autofilled-completion', confidence: 100 });
     options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
     detach = attachSurmiser(input, options);
 

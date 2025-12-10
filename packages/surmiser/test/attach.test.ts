@@ -11,14 +11,14 @@ describe('attachSurmiser', () => {
     // Setup DOM
     input = document.createElement('input');
     document.body.appendChild(input);
-    
+
     // Setup options
     options = {
       providers: [], // Mock providers or empty
       onSuggestion: vi.fn(),
       onAccept: vi.fn(),
       minConfidence: 0,
-      debounceMs: 0
+      debounceMs: 0,
     };
   });
 
@@ -29,9 +29,11 @@ describe('attachSurmiser', () => {
   });
 
   it('triggers suggestion flow on input', async () => {
-    const suggestMock = vi.fn().mockResolvedValue({ text: 'world', confidence: 100 });
+    const suggestMock = vi
+      .fn()
+      .mockResolvedValue({ text: 'world', confidence: 100 });
     options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
-    
+
     detach = attachSurmiser(input, options);
 
     // Simulate typing "hello"
@@ -46,12 +48,14 @@ describe('attachSurmiser', () => {
 
   it('accepts suggestion on Tab', async () => {
     // Mock provider to return the SUFFIX ('leted' for 'completed')
-    options.providers = [{ 
-      id: 'mock', 
-      priority: 1, 
-      suggest: vi.fn().mockResolvedValue({ text: 'leted', confidence: 100 }) 
-    }];
-    
+    options.providers = [
+      {
+        id: 'mock',
+        priority: 1,
+        suggest: vi.fn().mockResolvedValue({ text: 'leted', confidence: 100 }),
+      },
+    ];
+
     detach = attachSurmiser(input, options);
 
     // Trigger suggestion
@@ -60,22 +64,30 @@ describe('attachSurmiser', () => {
     await new Promise(r => setTimeout(r, 10));
 
     // Simulate Tab
-    const tabEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    const tabEvent = new KeyboardEvent('keydown', {
+      key: 'Tab',
+      bubbles: true,
+      cancelable: true,
+    });
     input.dispatchEvent(tabEvent);
 
     expect(tabEvent.defaultPrevented).toBe(true);
     // onAccept calls with the suggestion object, so it receives 'leted'
-    expect(options.onAccept).toHaveBeenCalledWith(expect.objectContaining({ text: 'leted' }));
+    expect(options.onAccept).toHaveBeenCalledWith(
+      expect.objectContaining({ text: 'leted' })
+    );
     expect(input.value).toBe('completed');
   });
 
   it('accepts suggestion on ArrowRight at end of input', async () => {
     // Mock provider to return SUFFIX ('xt' for 'next')
-    options.providers = [{ 
-      id: 'mock', 
-      priority: 1, 
-      suggest: vi.fn().mockResolvedValue({ text: 'xt', confidence: 100 }) 
-    }];
+    options.providers = [
+      {
+        id: 'mock',
+        priority: 1,
+        suggest: vi.fn().mockResolvedValue({ text: 'xt', confidence: 100 }),
+      },
+    ];
     detach = attachSurmiser(input, options);
 
     input.value = 'ne';
@@ -83,7 +95,11 @@ describe('attachSurmiser', () => {
     input.dispatchEvent(new Event('input'));
     await new Promise(r => setTimeout(r, 10));
 
-    const arrowEvent = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true });
+    const arrowEvent = new KeyboardEvent('keydown', {
+      key: 'ArrowRight',
+      bubbles: true,
+      cancelable: true,
+    });
     input.dispatchEvent(arrowEvent);
 
     expect(arrowEvent.defaultPrevented).toBe(true);
@@ -91,11 +107,13 @@ describe('attachSurmiser', () => {
   });
 
   it('does NOT accept ArrowRight if cursor is not at end', async () => {
-    options.providers = [{ 
-      id: 'mock', 
-      priority: 1, 
-      suggest: vi.fn().mockResolvedValue({ text: 'next', confidence: 100 }) 
-    }];
+    options.providers = [
+      {
+        id: 'mock',
+        priority: 1,
+        suggest: vi.fn().mockResolvedValue({ text: 'next', confidence: 100 }),
+      },
+    ];
     detach = attachSurmiser(input, options);
 
     input.value = 'ne';
@@ -103,7 +121,11 @@ describe('attachSurmiser', () => {
     input.dispatchEvent(new Event('input'));
     await new Promise(r => setTimeout(r, 10));
 
-    const arrowEvent = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true });
+    const arrowEvent = new KeyboardEvent('keydown', {
+      key: 'ArrowRight',
+      bubbles: true,
+      cancelable: true,
+    });
     input.dispatchEvent(arrowEvent);
 
     expect(arrowEvent.defaultPrevented).toBe(false);
@@ -111,11 +133,15 @@ describe('attachSurmiser', () => {
   });
 
   it('dismisses suggestion on Escape', async () => {
-    options.providers = [{ 
-      id: 'mock', 
-      priority: 1, 
-      suggest: vi.fn().mockResolvedValue({ text: 'dismiss-me', confidence: 100 }) 
-    }];
+    options.providers = [
+      {
+        id: 'mock',
+        priority: 1,
+        suggest: vi
+          .fn()
+          .mockResolvedValue({ text: 'dismiss-me', confidence: 100 }),
+      },
+    ];
     detach = attachSurmiser(input, options);
 
     input.value = 'dis';
@@ -123,21 +149,29 @@ describe('attachSurmiser', () => {
     await new Promise(r => setTimeout(r, 10));
 
     // Should have suggestion
-    expect(options.onSuggestion).toHaveBeenCalledWith(expect.objectContaining({ text: 'dismiss-me' }));
+    expect(options.onSuggestion).toHaveBeenCalledWith(
+      expect.objectContaining({ text: 'dismiss-me' })
+    );
 
     // Press Escape
-    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    input.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })
+    );
 
     // Should clear suggestion (we check if onSuggestion called with null)
     expect(options.onSuggestion).toHaveBeenLastCalledWith(null);
   });
 
   it('clears suggestions on blur', async () => {
-    options.providers = [{ 
-      id: 'mock', 
-      priority: 1, 
-      suggest: vi.fn().mockResolvedValue({ text: 'blur-test', confidence: 100 }) 
-    }];
+    options.providers = [
+      {
+        id: 'mock',
+        priority: 1,
+        suggest: vi
+          .fn()
+          .mockResolvedValue({ text: 'blur-test', confidence: 100 }),
+      },
+    ];
     detach = attachSurmiser(input, options);
 
     input.value = 'bl';
@@ -151,15 +185,18 @@ describe('attachSurmiser', () => {
 
   it('cleans up event listeners on detach', () => {
     detach = attachSurmiser(input, options);
-    
+
     // Spy on removeEventListener
     const removeSpy = vi.spyOn(input, 'removeEventListener');
-    
+
     detach();
 
     expect(removeSpy).toHaveBeenCalledWith('input', expect.any(Function), true);
-    expect(removeSpy).toHaveBeenCalledWith('keydown', expect.any(Function), true);
+    expect(removeSpy).toHaveBeenCalledWith(
+      'keydown',
+      expect.any(Function),
+      true
+    );
     expect(removeSpy).toHaveBeenCalledWith('blur', expect.any(Function), true);
   });
 });
-

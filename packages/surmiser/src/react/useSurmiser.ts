@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { attachSurmiser } from "../attach";
-import { localPredictive } from "../defaults";
-import type { Suggestion, SurmiserOptions, SurmiserProvider } from "../types";
-import { useSurmiserContext } from "./SurmiserProvider";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { attachSurmiser } from '../attach';
+import { localPredictive } from '../defaults';
+import type { Suggestion, SurmiserOptions, SurmiserProvider } from '../types';
+import { useSurmiserContext } from './SurmiserProvider';
 
 interface UseSurmiserOptions extends SurmiserOptions {
   value?: string;
@@ -74,7 +74,7 @@ export function useSurmiser(options: UseSurmiserOptions = {}) {
     if (options.providers) {
       finalProviders = options.providers;
     } else if (options.corpus) {
-      finalProviders = context 
+      finalProviders = context
         ? [localPredictive(options.corpus), ...ctxProviders]
         : [localPredictive(options.corpus)];
     } else {
@@ -86,7 +86,7 @@ export function useSurmiser(options: UseSurmiserOptions = {}) {
       debounceMs,
       minConfidence,
       onSuggestion: setSuggestion,
-      onAccept: (s) => {
+      onAccept: s => {
         setSuggestion(null);
         onAcceptRef.current?.(s);
       },

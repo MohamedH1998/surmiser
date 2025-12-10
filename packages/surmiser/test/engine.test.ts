@@ -4,13 +4,15 @@ import type { SurmiserProvider, SuggestionContext } from '../src/types';
 
 describe('SurmiserEngine', () => {
   let mockProvider: SurmiserProvider;
-  
+
   beforeEach(() => {
     vi.useFakeTimers();
     mockProvider = {
       id: 'mock',
       priority: 100,
-      suggest: vi.fn().mockResolvedValue({ text: 'suggestion', confidence: 100 })
+      suggest: vi
+        .fn()
+        .mockResolvedValue({ text: 'suggestion', confidence: 100 }),
     };
   });
 
@@ -20,7 +22,11 @@ describe('SurmiserEngine', () => {
 
   it('debounces requests by default 200ms', async () => {
     const engine = new SurmiserEngine({ providers: [mockProvider] });
-    const ctx = { text: 'te', cursorPosition: 2, lastTokens: [] } as SuggestionContext;
+    const ctx = {
+      text: 'te',
+      cursorPosition: 2,
+      lastTokens: [],
+    } as SuggestionContext;
 
     // Trigger multiple requests rapidly
     engine.requestSuggestion(ctx);
@@ -42,89 +48,117 @@ describe('SurmiserEngine', () => {
   it('filters suggestions below confidence threshold', async () => {
     const lowConfProvider = {
       ...mockProvider,
-      suggest: vi.fn().mockResolvedValue({ text: 'bad', confidence: 40 })
+      suggest: vi.fn().mockResolvedValue({ text: 'bad', confidence: 40 }),
     };
 
     const callback = vi.fn();
-    const engine = new SurmiserEngine({ 
+    const engine = new SurmiserEngine({
       providers: [lowConfProvider],
       minConfidence: 70, // Threshold is 70
-      onSuggestion: callback
+      onSuggestion: callback,
     });
 
-    engine.requestSuggestion({ text: 't', cursorPosition: 1, lastTokens: [] } as SuggestionContext);
+    engine.requestSuggestion({
+      text: 't',
+      cursorPosition: 1,
+      lastTokens: [],
+    } as SuggestionContext);
     await vi.advanceTimersByTimeAsync(250);
 
     expect(lowConfProvider.suggest).toHaveBeenCalled();
-    expect(callback).not.toHaveBeenCalledWith(expect.objectContaining({ text: 'bad' }));
-    // Depending on implementation, it might call with null or not call at all. 
+    expect(callback).not.toHaveBeenCalledWith(
+      expect.objectContaining({ text: 'bad' })
+    );
+    // Depending on implementation, it might call with null or not call at all.
     // Checking current suggestion state:
     expect(engine.getCurrentSuggestion()).toBeNull();
   });
 
   it('aborts stale requests on new input', async () => {
-    let resolveRequest: (val: any) => void;
     const slowProvider = {
       ...mockProvider,
       suggest: vi.fn().mockImplementation((_ctx, _signal) => {
-        return new Promise((resolve) => {
-          resolveRequest = resolve;
-          // Hold the promise indefinitely until we manually resolve
+        return new Promise(() => {
+          // Hold the promise indefinitely
           // This simulates a network request that is still pending
         });
-      })
+      }),
     };
 
-    const engine = new SurmiserEngine({ providers: [slowProvider], debounceMs: 0 });
-    const ctx1 = { text: 'a', cursorPosition: 1, lastTokens: [] } as SuggestionContext;
-    const ctx2 = { text: 'ab', cursorPosition: 2, lastTokens: [] } as SuggestionContext;
+    const engine = new SurmiserEngine({
+      providers: [slowProvider],
+      debounceMs: 0,
+    });
+    const ctx1 = {
+      text: 'a',
+      cursorPosition: 1,
+      lastTokens: [],
+    } as SuggestionContext;
+    const ctx2 = {
+      text: 'ab',
+      cursorPosition: 2,
+      lastTokens: [],
+    } as SuggestionContext;
 
     // 1. Trigger first request
     engine.requestSuggestion(ctx1);
-    
+
     // 2. Allow debounce (0ms) to fire and fetchSuggestion to start
-    await vi.advanceTimersByTimeAsync(1); 
-    
+    await vi.advanceTimersByTimeAsync(1);
+
     // Now slowProvider.suggest should have been called once
     expect(slowProvider.suggest).toHaveBeenCalledTimes(1);
-    
+
     // Check that the signal is NOT aborted yet
     const firstCallSignal = (slowProvider.suggest as any).mock.calls[0][1];
     expect(firstCallSignal.aborted).toBe(false);
 
     // 3. Trigger second request (should cancel the first one)
     engine.requestSuggestion(ctx2);
-    
+
     // The first signal should now be aborted immediately
     expect(firstCallSignal.aborted).toBe(true);
-    
+
     // 4. Allow second request to start
     await vi.advanceTimersByTimeAsync(1);
-    
+
     // Provider should be called again
     expect(slowProvider.suggest).toHaveBeenCalledTimes(2);
-    
+
     const secondCallSignal = (slowProvider.suggest as any).mock.calls[1][1];
     expect(secondCallSignal.aborted).toBe(false);
   });
 
   it('respects provider priority', async () => {
-    const p1 = { ...mockProvider, id: 'low', priority: 1, suggest: vi.fn().mockResolvedValue(null) };
-    const p2 = { ...mockProvider, id: 'high', priority: 100, suggest: vi.fn().mockResolvedValue({ text: 'high', confidence: 100 }) };
-    
+    const p1 = {
+      ...mockProvider,
+      id: 'low',
+      priority: 1,
+      suggest: vi.fn().mockResolvedValue(null),
+    };
+    const p2 = {
+      ...mockProvider,
+      id: 'high',
+      priority: 100,
+      suggest: vi.fn().mockResolvedValue({ text: 'high', confidence: 100 }),
+    };
+
     const engine = new SurmiserEngine({ providers: [p1, p2], debounceMs: 0 });
-    
-    engine.requestSuggestion({ text: '', cursorPosition: 0, lastTokens: [] } as SuggestionContext);
-    
+
+    engine.requestSuggestion({
+      text: '',
+      cursorPosition: 0,
+      lastTokens: [],
+    } as SuggestionContext);
+
     // Allow debounce to fire
     await vi.advanceTimersByTimeAsync(1);
 
     // Should call high priority first
     expect(p2.suggest).toHaveBeenCalled();
-    
+
     // Since p2 returned a good suggestion, p1 should NOT be called
     expect(p1.suggest).not.toHaveBeenCalled();
     expect(engine.getCurrentSuggestion()?.text).toBe('high');
   });
 });
-

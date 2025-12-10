@@ -10,7 +10,9 @@ test.describe('IME Composition', () => {
     await input.focus();
 
     await input.type('f');
-    const ghost = page.locator('div[style*="z-index: 9999"]').filter({ hasText: 'feature request' });
+    const ghost = page
+      .locator('div[style*="z-index: 9999"]')
+      .filter({ hasText: 'feature request' });
     await expect(ghost).toBeVisible();
 
     // Start composition (simulating IME)
@@ -35,7 +37,7 @@ test.describe('IME Composition', () => {
 
     // Trigger input event to signal completion (normally happens after compositionend)
     await input.evaluate(el => {
-        el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('input', { bubbles: true }));
     });
 
     // Now ghost should reappear for "fe" -> "feature request"
@@ -43,4 +45,3 @@ test.describe('IME Composition', () => {
     await expect(ghost).toContainText('feature request');
   });
 });
-

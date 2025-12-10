@@ -10,13 +10,13 @@ describe('Accessibility', () => {
   beforeEach(() => {
     input = document.createElement('input');
     document.body.appendChild(input);
-    
+
     options = {
       providers: [],
       onSuggestion: vi.fn(),
       onAccept: vi.fn(),
       minConfidence: 0,
-      debounceMs: 0
+      debounceMs: 0,
     };
   });
 
@@ -45,11 +45,13 @@ describe('Accessibility', () => {
   });
 
   it('announces suggestions to screen reader', async () => {
-    options.providers = [{ 
-      id: 'mock', 
-      priority: 1, 
-      suggest: vi.fn().mockResolvedValue({ text: ' world', confidence: 100 }) 
-    }];
+    options.providers = [
+      {
+        id: 'mock',
+        priority: 1,
+        suggest: vi.fn().mockResolvedValue({ text: ' world', confidence: 100 }),
+      },
+    ];
     detach = attachSurmiser(input, options);
 
     // Type "hello"
@@ -62,11 +64,13 @@ describe('Accessibility', () => {
   });
 
   it('does not re-announce same suggestion', async () => {
-    options.providers = [{ 
-      id: 'mock', 
-      priority: 1, 
-      suggest: vi.fn().mockResolvedValue({ text: ' world', confidence: 100 }) 
-    }];
+    options.providers = [
+      {
+        id: 'mock',
+        priority: 1,
+        suggest: vi.fn().mockResolvedValue({ text: ' world', confidence: 100 }),
+      },
+    ];
     detach = attachSurmiser(input, options);
 
     // First trigger
@@ -78,31 +82,37 @@ describe('Accessibility', () => {
     expect(liveRegion?.textContent).toContain('Suggestion: hello world');
 
     // Change input
-    input.value = 'helloo'; 
+    input.value = 'helloo';
     input.dispatchEvent(new Event('input'));
     await new Promise(r => setTimeout(r, 10));
-    
+
     expect(liveRegion?.textContent).toContain('Suggestion: helloo world');
   });
 
   it('maintains focus on input after acceptance', async () => {
-    options.providers = [{ 
-      id: 'mock', 
-      priority: 1, 
-      suggest: vi.fn().mockResolvedValue({ text: ' world', confidence: 100 }) 
-    }];
+    options.providers = [
+      {
+        id: 'mock',
+        priority: 1,
+        suggest: vi.fn().mockResolvedValue({ text: ' world', confidence: 100 }),
+      },
+    ];
     detach = attachSurmiser(input, options);
 
     // Focus input
     input.focus();
-    
+
     // Trigger suggestion
     input.value = 'hello';
     input.dispatchEvent(new Event('input'));
     await new Promise(r => setTimeout(r, 10));
 
     // Accept via Tab
-    const tabEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    const tabEvent = new KeyboardEvent('keydown', {
+      key: 'Tab',
+      bubbles: true,
+      cancelable: true,
+    });
     input.dispatchEvent(tabEvent);
 
     // Verify focus is still on input

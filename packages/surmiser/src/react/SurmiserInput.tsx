@@ -1,12 +1,12 @@
-import { forwardRef, useCallback } from 'react'
-import { useSurmiser } from './useSurmiser'
-import type { SurmiserProvider } from '../types'
+import { forwardRef, useCallback } from 'react';
+import { useSurmiser } from './useSurmiser';
+import type { SurmiserProvider } from '../types';
 
 interface SurmiserInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  corpus?: string[]
-  providers?: SurmiserProvider[]
-  debounceMs?: number
-  minConfidence?: number
+  corpus?: string[];
+  providers?: SurmiserProvider[];
+  debounceMs?: number;
+  minConfidence?: number;
 }
 
 /**
@@ -20,9 +20,9 @@ interface SurmiserInputProps extends React.InputHTMLAttributes<HTMLInputElement>
  * <SurmiserInput placeholder="Email..." />
  *
  * // Standalone with custom corpus
- * <SurmiserInput 
- *   corpus={['hello', 'world']} 
- *   placeholder="Type..." 
+ * <SurmiserInput
+ *   corpus={['hello', 'world']}
+ *   placeholder="Type..."
  * />
  *
  * // Within Provider (inherits shared config)
@@ -42,21 +42,24 @@ export const SurmiserInput = forwardRef<HTMLInputElement, SurmiserInputProps>(
       providers,
       debounceMs,
       minConfidence,
-      value: typeof value === 'string' ? value : undefined
-    })
+      value: typeof value === 'string' ? value : undefined,
+    });
 
-    const mergedRef = useCallback((node: HTMLInputElement | null) => {
-      attachRef(node)
+    const mergedRef = useCallback(
+      (node: HTMLInputElement | null) => {
+        attachRef(node);
 
-      if (typeof ref === 'function') {
-        ref(node)
-      } else if (ref) {
-        ref.current = node
-      }
-    }, [attachRef, ref])
+        if (typeof ref === 'function') {
+          ref(node);
+        } else if (ref) {
+          ref.current = node;
+        }
+      },
+      [attachRef, ref]
+    );
 
-    return <input ref={mergedRef} value={value} {...props} />
+    return <input ref={mergedRef} value={value} {...props} />;
   }
-)
+);
 
-SurmiserInput.displayName = 'SurmiserInput'
+SurmiserInput.displayName = 'SurmiserInput';

@@ -26,21 +26,25 @@ describe('DOM Scenarios Edge Cases', () => {
   };
 
   const createOptions = (id: string): SurmiserOptions => ({
-    providers: [{
-      id: 'mock',
-      priority: 1,
-      suggest: vi.fn().mockResolvedValue({ text: `suggestion-${id}`, confidence: 100 })
-    }],
+    providers: [
+      {
+        id: 'mock',
+        priority: 1,
+        suggest: vi
+          .fn()
+          .mockResolvedValue({ text: `suggestion-${id}`, confidence: 100 }),
+      },
+    ],
     onSuggestion: vi.fn(),
     onAccept: vi.fn(),
     minConfidence: 0,
-    debounceMs: 0
+    debounceMs: 0,
   });
 
   it('handles multiple attached inputs independently', async () => {
     const input1 = createInput();
     const input2 = createInput();
-    
+
     const options1 = createOptions('1');
     const options2 = createOptions('2');
 
@@ -66,10 +70,13 @@ describe('DOM Scenarios Edge Cases', () => {
   it('updates ghost position on scroll', async () => {
     const input = createInput();
     const options = createOptions('scroll');
-    
+
     // Mock getBoundingClientRect
     const getRect = vi.fn().mockReturnValue({
-      top: 100, left: 50, width: 200, height: 30
+      top: 100,
+      left: 50,
+      width: 200,
+      height: 30,
     });
     input.getBoundingClientRect = getRect;
 
@@ -81,7 +88,7 @@ describe('DOM Scenarios Edge Cases', () => {
 
     // Trigger scroll
     input.dispatchEvent(new Event('scroll'));
-    
+
     // Should re-sync position (check if getBoundingClientRect is called again)
     expect(getRect.mock.calls.length).toBeGreaterThan(initialCalls);
   });
@@ -89,25 +96,28 @@ describe('DOM Scenarios Edge Cases', () => {
   it('handles position: fixed inputs correctly', async () => {
     const input = createInput();
     const options = createOptions('fixed');
-    
+
     // Mock styles to simulate position: fixed
     const originalGetComputedStyle = window.getComputedStyle;
-    vi.spyOn(window, 'getComputedStyle').mockImplementation((el) => {
+    vi.spyOn(window, 'getComputedStyle').mockImplementation(el => {
       if (el === input) {
         return {
           ...originalGetComputedStyle(el),
           position: 'fixed',
           getPropertyValue: (prop: string) => {
-             if (prop === 'position') return 'fixed';
-             return originalGetComputedStyle(el).getPropertyValue(prop);
-          }
+            if (prop === 'position') return 'fixed';
+            return originalGetComputedStyle(el).getPropertyValue(prop);
+          },
         } as any;
       }
       return originalGetComputedStyle(el);
     });
 
     const getRect = vi.fn().mockReturnValue({
-      top: 100, left: 50, width: 200, height: 30
+      top: 100,
+      left: 50,
+      width: 200,
+      height: 30,
     });
     input.getBoundingClientRect = getRect;
 
@@ -115,10 +125,10 @@ describe('DOM Scenarios Edge Cases', () => {
 
     // Wait for microtasks (syncStyles is called in constructor)
     await new Promise(r => setTimeout(r, 10));
-    
+
     // Find div with z-index 9999
-    const ghost = Array.from(document.body.children).find(el => 
-      (el as HTMLElement).style?.zIndex === '9999'
+    const ghost = Array.from(document.body.children).find(
+      el => (el as HTMLElement).style?.zIndex === '9999'
     ) as HTMLElement;
 
     expect(ghost).toBeDefined();
@@ -129,7 +139,7 @@ describe('DOM Scenarios Edge Cases', () => {
   it('cleans up all created elements on detach', () => {
     const input = createInput();
     const options = createOptions('cleanup');
-    
+
     const initialBodyChildren = document.body.children.length; // Just the input
 
     const detach = attachSurmiser(input, options);

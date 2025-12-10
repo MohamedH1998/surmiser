@@ -1,11 +1,11 @@
-import { describe, it, expect, afterEach } from "vitest";
-import { renderHook, cleanup } from "@testing-library/react";
-import { useSurmiser } from "../../src/react/useSurmiser";
-import { SurmiserProvider } from "../../src/react/SurmiserProvider";
-import React from "react";
-import type { SurmiserProvider as SurmiserProviderType } from "../../src/types";
+import { describe, it, expect, afterEach } from 'vitest';
+import { renderHook, cleanup } from '@testing-library/react';
+import { useSurmiser } from '../../src/react/useSurmiser';
+import { SurmiserProvider } from '../../src/react/SurmiserProvider';
+import React from 'react';
+import type { SurmiserProvider as SurmiserProviderType } from '../../src/types';
 
-describe("useSurmiser", () => {
+describe('useSurmiser', () => {
   afterEach(() => {
     cleanup();
   });
@@ -14,7 +14,7 @@ describe("useSurmiser", () => {
     <SurmiserProvider>{children}</SurmiserProvider>
   );
 
-  it("initializes without error when wrapped in Provider", () => {
+  it('initializes without error when wrapped in Provider', () => {
     const { result } = renderHook(
       () =>
         useSurmiser({
@@ -28,7 +28,7 @@ describe("useSurmiser", () => {
     expect(result.current.suggestion).toBeNull();
   });
 
-  it("merges context configuration with local options", () => {
+  it('merges context configuration with local options', () => {
     const customWrapper = ({ children }: { children: React.ReactNode }) => (
       <SurmiserProvider minConfidence={80}>{children}</SurmiserProvider>
     );
@@ -44,24 +44,24 @@ describe("useSurmiser", () => {
     expect(result.current.attachRef).toBeInstanceOf(Function);
   });
 
-  it("handles cleanup on unmount", () => {
+  it('handles cleanup on unmount', () => {
     const { unmount } = renderHook(() => useSurmiser({}), { wrapper });
 
     // Should not throw
     unmount();
   });
 
-  it("is safe to call multiple times (React Strict Mode simulation)", () => {
+  it('is safe to call multiple times (React Strict Mode simulation)', () => {
     const { result, rerender } = renderHook(() => useSurmiser({}), { wrapper });
 
     rerender();
     expect(result.current.attachRef).toBeInstanceOf(Function);
   });
 
-  it("works standalone without a Provider", () => {
+  it('works standalone without a Provider', () => {
     const { result } = renderHook(() =>
       useSurmiser({
-        corpus: ["hello", "world"],
+        corpus: ['hello', 'world'],
       })
     );
 
@@ -69,16 +69,16 @@ describe("useSurmiser", () => {
     expect(result.current.suggestion).toBeNull();
   });
 
-  it("uses default corpus when no Provider and no options", () => {
+  it('uses default corpus when no Provider and no options', () => {
     const { result } = renderHook(() => useSurmiser());
 
     expect(result.current.attachRef).toBeInstanceOf(Function);
     expect(result.current.suggestion).toBeNull();
   });
 
-  it("standalone usage with custom providers", () => {
+  it('standalone usage with custom providers', () => {
     const mockProvider: SurmiserProviderType = {
-      id: "mock",
+      id: 'mock',
       priority: 100,
       suggest: async () => null,
     };
@@ -92,19 +92,19 @@ describe("useSurmiser", () => {
     expect(result.current.attachRef).toBeInstanceOf(Function);
   });
 
-  it("standalone with corpus replaces default (not additive)", () => {
+  it('standalone with corpus replaces default (not additive)', () => {
     const { result } = renderHook(() =>
       useSurmiser({
-        corpus: ["custom", "words"],
+        corpus: ['custom', 'words'],
       })
     );
 
     expect(result.current.attachRef).toBeInstanceOf(Function);
   });
 
-  it("with Provider, corpus is additive", () => {
+  it('with Provider, corpus is additive', () => {
     const customWrapper = ({ children }: { children: React.ReactNode }) => (
-      <SurmiserProvider corpus={["provider", "words"]}>
+      <SurmiserProvider corpus={['provider', 'words']}>
         {children}
       </SurmiserProvider>
     );
@@ -112,7 +112,7 @@ describe("useSurmiser", () => {
     const { result } = renderHook(
       () =>
         useSurmiser({
-          corpus: ["additional", "words"],
+          corpus: ['additional', 'words'],
         }),
       { wrapper: customWrapper }
     );

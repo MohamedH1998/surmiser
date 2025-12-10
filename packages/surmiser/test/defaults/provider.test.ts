@@ -7,14 +7,14 @@ describe('localPredictive Provider', () => {
     const ctx = {
       text: 'hello ',
       cursorPosition: 6,
-      lastTokens: ['hello', '']
+      lastTokens: ['hello', ''],
     };
 
     // Should match "world" or "universe" - likely first match or shortest
     // Implementation logic: iterates and finds best match.
     // If input is "hello ", matches "hello world", returns "world".
     const result = await provider.suggest(ctx, new AbortController().signal);
-    
+
     expect(result).not.toBeNull();
     // Assuming it returns the suffix
     expect(['world', 'universe']).toContain(result?.text);
@@ -25,7 +25,7 @@ describe('localPredictive Provider', () => {
     const ctx = {
       text: 'hello',
       cursorPosition: 5,
-      lastTokens: ['hello']
+      lastTokens: ['hello'],
     };
 
     const result = await provider.suggest(ctx, new AbortController().signal);
@@ -38,11 +38,11 @@ describe('localPredictive Provider', () => {
     const ctx = {
       text: 'git co',
       cursorPosition: 6,
-      lastTokens: ['git', 'co']
+      lastTokens: ['git', 'co'],
     };
 
     const result = await provider.suggest(ctx, new AbortController().signal);
-    
+
     expect(result).not.toBeNull();
     // "git commit" - "git co" = "mmit"
     expect(result?.text).toBe('mmit');
@@ -53,7 +53,7 @@ describe('localPredictive Provider', () => {
     const ctx = {
       text: 'cherr',
       cursorPosition: 5,
-      lastTokens: ['cherr']
+      lastTokens: ['cherr'],
     };
 
     const result = await provider.suggest(ctx, new AbortController().signal);
@@ -66,11 +66,11 @@ describe('localPredictive Provider', () => {
     const ctx = {
       text: 'hello,',
       cursorPosition: 6,
-      lastTokens: ['hello']
+      lastTokens: ['hello'],
     };
 
     const result = await provider.suggest(ctx, new AbortController().signal);
-    
+
     expect(result).not.toBeNull();
     // Should return " world" NOT ", world" (comma already typed)
     expect(result?.text).toBe(' world');
@@ -82,14 +82,13 @@ describe('localPredictive Provider', () => {
     const ctx = {
       text: 'hello, ',
       cursorPosition: 7,
-      lastTokens: ['hello']
+      lastTokens: ['hello'],
     };
 
     const result = await provider.suggest(ctx, new AbortController().signal);
-    
+
     expect(result).not.toBeNull();
     // Should return "world" (comma and space already typed)
     expect(result?.text).toBe('world');
   });
 });
-
