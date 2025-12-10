@@ -59,6 +59,13 @@ class LocalPredictiveProvider implements SurmiserProvider {
     const segmentTokens = getSegmentTokens(allTokens, this.segmentStartIndex);
     if (segmentTokens.length === 0) return null;
 
+    const isFreshInput =
+      this.segmentStartIndex === 0 && segmentTokens.length === allTokens.length;
+
+    if (segmentTokens.length === 1 && !isFreshInput) {
+      return null;
+    }
+
     const isMidWord =
       textBeforeCursor.length > 0 && !/\s$/.test(textBeforeCursor);
 
@@ -135,7 +142,6 @@ class LocalPredictiveProvider implements SurmiserProvider {
 
           const confidence = matchLen >= 3 ? 95 : matchLen >= 2 ? 90 : 80;
 
-          // Update best match if this is better (longer match or first found)
           if (suggestionText && (!bestMatch || matchLen > bestMatch.matchLen)) {
             bestMatch = { text: suggestionText, confidence, matchLen };
           }

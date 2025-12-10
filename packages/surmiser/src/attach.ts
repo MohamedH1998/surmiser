@@ -134,6 +134,9 @@ class SurmiserController {
   private clear(): void {
     this.engine.clearSuggestion();
     this.render(null);
+    const value = this.inputEl.value;
+    const tokenCount = value.toLowerCase().match(/\w+/g)?.length || 0;
+    this.engine.markSegmentBoundary(tokenCount);
   }
 
   private dismiss(): void {
@@ -214,6 +217,11 @@ class SurmiserController {
       if (this.shouldResetDismissedState(value)) {
         this.isDismissed = false;
       }
+    }
+
+    // 3. Handle cleared input
+    if (value.length === 0) {
+      this.clear();
     }
 
     // 3. Render and Request
