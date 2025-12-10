@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { attachSurmiser } from '../attach';
 import { localPredictive } from '../defaults';
@@ -58,6 +59,19 @@ export function useSurmiser(options: UseSurmiserOptions = {}) {
     minConfidence: ctxMinConf,
   } = context || {};
 
+  const stableCorpus = useMemo(
+    () => options.corpus,
+    [options.corpus ? JSON.stringify(options.corpus) : undefined]
+  );
+  const stableProviders = useMemo(
+    () => options.providers,
+    [
+      options.providers
+        ? JSON.stringify(options.providers?.map(p => p.id))
+        : undefined,
+    ]
+  );
+
   onAcceptRef.current = options.onAccept;
 
   const attachRef = useCallback((node: HTMLInputElement | null) => {
@@ -71,12 +85,12 @@ export function useSurmiser(options: UseSurmiserOptions = {}) {
 
     let finalProviders: SurmiserProvider[];
 
-    if (options.providers) {
-      finalProviders = options.providers;
-    } else if (options.corpus) {
+    if (stableProviders) {
+      finalProviders = stableProviders;
+    } else if (stableCorpus) {
       finalProviders = context
-        ? [localPredictive(options.corpus), ...ctxProviders]
-        : [localPredictive(options.corpus)];
+        ? [localPredictive(stableCorpus), ...ctxProviders]
+        : [localPredictive(stableCorpus)];
     } else {
       finalProviders = ctxProviders;
     }
@@ -97,8 +111,8 @@ export function useSurmiser(options: UseSurmiserOptions = {}) {
     };
   }, [
     element,
-    options.corpus,
-    options.providers,
+    stableCorpus,
+    stableProviders,
     options.debounceMs,
     options.minConfidence,
     ctxDebounce,

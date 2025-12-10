@@ -95,6 +95,13 @@ export class SurmiserEngine {
     this.options.onSuggestion?.(null);
   }
 
+  markSegmentBoundary(tokenCount: number): void {
+    const providers = this.options.providers || [];
+    for (const provider of providers) {
+      provider.markSegmentBoundary?.(tokenCount);
+    }
+  }
+
   destroy(): void {
     this.cancel();
   }

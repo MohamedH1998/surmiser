@@ -19,15 +19,7 @@ export function localPredictive(
       const input = normalizeText(textBeforeCursor);
       if (!input) return null;
 
-      // Allowed: apostrophes ('), hyphens (-), commas (,), spaces
-      if (/[.!?;:…@#$%^&*()+=[\]{}|\\/<>`~]$/.test(textBeforeCursor.trim())) {
-        return null;
-      }
-
-      const inputForMatching = input.replace(/[,''-]\s*$/, '').trim();
-      if (!inputForMatching) return null;
-
-      const inputTokens = tokenize(inputForMatching);
+      const inputTokens = tokenize(input);
       if (inputTokens.length === 0) return null;
 
       const isMidWord =
@@ -39,7 +31,20 @@ export function localPredictive(
         matchLen: number;
       } | null = null;
 
+      const MAX_DISCARD = 1;
+
       for (let matchLen = inputTokens.length; matchLen >= 1; matchLen--) {
+        const discarded = inputTokens.length - matchLen;
+
+        if (discarded > MAX_DISCARD) continue;
+
+        if (matchLen === 1 && inputTokens.length > 1) {
+          const lastToken = inputTokens[inputTokens.length - 1];
+          if (lastToken.length < 3) {
+            continue;
+          }
+        }
+
         const inputPrefix = inputTokens.slice(-matchLen);
         const inputLastToken = inputPrefix[matchLen - 1];
         let foundMatchAtThisLevel = false;

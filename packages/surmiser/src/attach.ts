@@ -23,7 +23,7 @@ class SurmiserController {
 
   constructor(
     private inputEl: HTMLInputElement,
-    private options: SurmiserOptions
+    private options: SurmiserOptions = {}
   ) {
     this.lastValue = inputEl.value;
 
@@ -184,6 +184,10 @@ class SurmiserController {
 
     this.isDismissed = false;
 
+    const value = this.inputEl.value;
+    const tokenCount = value.toLowerCase().match(/\w+/g)?.length || 0;
+    this.engine.markSegmentBoundary(tokenCount);
+
     // Reset isAccepting after event loop
     setTimeout(() => {
       this.isAccepting = false;
@@ -217,7 +221,6 @@ class SurmiserController {
     const displayText = this.isDismissed
       ? null
       : computeDisplaySuggestion(currentText, value, this.lastValue);
-
     this.lastValue = value;
     this.renderer.render(value, cursorPos, displayText);
     this.engine.requestSuggestion(buildContext(value, cursorPos));
@@ -336,7 +339,7 @@ function setInputValue(input: HTMLInputElement, value: string) {
 
 export function attachSurmiser(
   inputEl: HTMLInputElement,
-  options: SurmiserOptions
+  options?: SurmiserOptions
 ): () => void {
   const controller = new SurmiserController(inputEl, options);
   controller.attach();

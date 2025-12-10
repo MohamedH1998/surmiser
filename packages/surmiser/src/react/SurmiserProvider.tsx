@@ -71,6 +71,18 @@ export function SurmiserProvider({
   minConfidence,
   children,
 }: SurmiserProviderProps) {
+  // Stabilize corpus/provider to prevent re-renders from inline arrays/objects
+  const corpusKey = corpus ? JSON.stringify(corpus) : undefined;
+  const providerKey = useMemo(() => {
+    if (!provider) return undefined;
+    if (Array.isArray(provider)) {
+      return typeof provider[0] === 'string'
+        ? JSON.stringify(provider)
+        : JSON.stringify((provider as Provider[]).map(p => p.id));
+    }
+    return (provider as Provider).id;
+  }, [provider]);
+
   const providers = useMemo(() => {
     if (corpus && provider) {
       throw new Error(
@@ -94,7 +106,8 @@ export function SurmiserProvider({
     return Array.isArray(provider)
       ? (provider as Provider[])
       : [provider as Provider];
-  }, [corpus, provider]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [corpus, corpusKey, provider, providerKey]);
 
   const contextValue = useMemo(
     () => ({ providers, debounceMs, minConfidence }),

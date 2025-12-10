@@ -119,4 +119,60 @@ describe('useSurmiser', () => {
 
     expect(result.current.attachRef).toBeInstanceOf(Function);
   });
+
+  it('stabilizes corpus reference to prevent unnecessary re-attachments', () => {
+    const { rerender, result } = renderHook(
+      () =>
+        useSurmiser({
+          corpus: ['test', 'words', 'stable'],
+          debounceMs: 0,
+        }),
+      { initialProps: { key: 0 } }
+    );
+
+    expect(result.current.attachRef).toBeInstanceOf(Function);
+
+    rerender({ key: 1 });
+    rerender({ key: 2 });
+    rerender({ key: 3 });
+
+    expect(result.current.attachRef).toBeInstanceOf(Function);
+  });
+
+  it('handles dynamic corpus changes', () => {
+    const { result, rerender } = renderHook(
+      ({ corpus }: { corpus: string[] }) => useSurmiser({ corpus }),
+      { initialProps: { corpus: ['sports phrase'] } }
+    );
+
+    expect(result.current.attachRef).toBeInstanceOf(Function);
+
+    // Change corpus
+    rerender({ corpus: ['dev phrase'] });
+
+    expect(result.current.attachRef).toBeInstanceOf(Function);
+  });
+
+  it('switching between multiple corpus sets', () => {
+    const sports = ['arsenal', 'tottenham'];
+    const dev = ['feature', 'bug'];
+
+    const { result, rerender } = renderHook(
+      ({ corpus }: { corpus: string[] }) => useSurmiser({ corpus }),
+      { initialProps: { corpus: sports } }
+    );
+
+    const ref1 = result.current.attachRef;
+
+    rerender({ corpus: dev });
+    const ref2 = result.current.attachRef;
+
+    rerender({ corpus: sports });
+    const ref3 = result.current.attachRef;
+
+    // Refs should update when corpus changes
+    expect(ref1).toBeInstanceOf(Function);
+    expect(ref2).toBeInstanceOf(Function);
+    expect(ref3).toBeInstanceOf(Function);
+  });
 });

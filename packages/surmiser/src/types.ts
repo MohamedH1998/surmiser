@@ -17,6 +17,7 @@ export interface SurmiserProvider {
     ctx: SuggestionContext,
     signal: AbortSignal
   ): Promise<Suggestion | null>;
+  markSegmentBoundary?: (tokenCount: number) => void;
 }
 
 export interface SurmiserOptions {

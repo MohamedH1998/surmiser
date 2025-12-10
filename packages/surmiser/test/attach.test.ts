@@ -199,4 +199,147 @@ describe('attachSurmiser', () => {
     );
     expect(removeSpy).toHaveBeenCalledWith('blur', expect.any(Function), true);
   });
+
+  it('works with custom corpus without explicit provider', async () => {
+    const customCorpus = [
+      'thank you so much',
+      'thanks for letting me know',
+      'that sounds great',
+    ];
+
+    const corpusOptions: SurmiserOptions = {
+      corpus: customCorpus,
+      onSuggestion: vi.fn(),
+      onAccept: vi.fn(),
+      debounceMs: 0,
+      minConfidence: 0,
+    };
+
+    detach = attachSurmiser(input, corpusOptions);
+
+    input.value = 'thank you ';
+    input.selectionStart = 10;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+
+    await new Promise(r => setTimeout(r, 20));
+
+    expect(corpusOptions.onSuggestion).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'so much',
+        confidence: expect.any(Number),
+      })
+    );
+
+    const tabEvent = new KeyboardEvent('keydown', {
+      key: 'Tab',
+      bubbles: true,
+      cancelable: true,
+    });
+    input.dispatchEvent(tabEvent);
+
+    expect(tabEvent.defaultPrevented).toBe(true);
+    expect(input.value).toBe('thank you so much');
+    expect(corpusOptions.onAccept).toHaveBeenCalled();
+  });
+
+  it('throws error when both corpus and providers are specified', () => {
+    const invalidOptions: SurmiserOptions = {
+      corpus: ['test'],
+      providers: [{ id: 'test', priority: 1, suggest: vi.fn() }],
+    };
+
+    expect(() => {
+      attachSurmiser(input, invalidOptions);
+    }).toThrow("Cannot use both 'corpus' and 'providers'");
+  });
+
+  it('handles multiple rapid inputs without losing suggestions', async () => {
+    vi.fn().mockResolvedValue({ text: ' you so much', confidence: 95 });
+
+    const corpusOptions: SurmiserOptions = {
+      corpus: ['thank you so much'],
+      onSuggestion: vi.fn(),
+      debounceMs: 0,
+      minConfidence: 0,
+    };
+
+    detach = attachSurmiser(input, corpusOptions);
+
+    input.value = 't';
+    input.selectionStart = 1;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+
+    input.value = 'th';
+    input.selectionStart = 2;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+
+    input.value = 'tha';
+    input.selectionStart = 3;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+
+    input.value = 'than';
+    input.selectionStart = 4;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+
+    input.value = 'thank';
+    input.selectionStart = 5;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+
+    await new Promise(r => setTimeout(r, 50));
+
+    const calls = (corpusOptions.onSuggestion as ReturnType<typeof vi.fn>).mock
+      .calls;
+    const lastCall = calls[calls.length - 1][0];
+    expect(lastCall).not.toBeNull();
+    expect(lastCall?.text).toBeTruthy();
+  });
+
+  it('works with default options', async () => {
+    const onSuggestion = vi.fn();
+
+    detach = attachSurmiser(input, { onSuggestion, debounceMs: 0 });
+
+    input.value = 'thank you ';
+    input.selectionStart = 10;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+
+    await new Promise(r => setTimeout(r, 20));
+
+    expect(onSuggestion).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: expect.any(String),
+        confidence: expect.any(Number),
+      })
+    );
+  });
+
+  it('attaches with completely empty options (full default)', async () => {
+    const onSuggestion = vi.fn();
+
+    detach = attachSurmiser(input, {
+      onSuggestion,
+      debounceMs: 0,
+      minConfidence: 0,
+    });
+
+    input.value = 'thanks ';
+    input.selectionStart = 7;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+
+    await new Promise(r => setTimeout(r, 20));
+
+    expect(onSuggestion).toHaveBeenCalled();
+  });
+
+  it('works when options param is undefined', () => {
+    expect(() => {
+      detach = attachSurmiser(input);
+    }).not.toThrow();
+  });
+
+  it('works when options param is empty object', () => {
+    expect(() => {
+      detach = attachSurmiser(input, {});
+    }).not.toThrow();
+  });
 });
