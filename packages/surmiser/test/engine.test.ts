@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { SurmiserEngine } from '../src/engine';
-import type { SurmiserProvider, SuggestionContext } from '../src/types';
+import type { LocalProvider, SuggestionContext } from '../src/types';
 
 describe('SurmiserEngine', () => {
-  let mockProvider: SurmiserProvider;
+  let mockProvider: LocalProvider;
 
   beforeEach(() => {
     vi.useFakeTimers();

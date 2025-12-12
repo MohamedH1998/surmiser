@@ -119,7 +119,11 @@ class SurmiserController {
       );
     }
     if (this.options.corpus) return [localPredictive(this.options.corpus)];
-    if (this.options.providers) return [...this.options.providers];
+    if (this.options.providers) {
+      return Array.isArray(this.options.providers)
+        ? [...this.options.providers]
+        : [this.options.providers];
+    }
     return [localPredictive()];
   }
 
@@ -224,6 +228,14 @@ class SurmiserController {
       this.clear();
     }
 
+    const isCursorAtEnd = cursorPos === value.length;
+
+    if (!isCursorAtEnd) {
+      this.engine.clearSuggestion();
+      this.renderer.render(value, cursorPos, null);
+      this.lastValue = value;
+      return;
+    }
     // 3. Render and Request
     const currentText = this.engine.getCurrentSuggestion()?.text || null;
     const displayText = this.isDismissed

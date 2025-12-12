@@ -1,4 +1,4 @@
-import type { SurmiserProvider, SuggestionContext, Suggestion } from '../types';
+import type { LocalProvider, SuggestionContext, Suggestion } from '../types';
 import { normalizeText, tokenize } from './tokenizer';
 import { defaultCorpus } from './default-corpus';
 
@@ -15,23 +15,29 @@ function findLastIndex<T>(arr: T[], predicate: (item: T) => boolean): number {
 function getSegmentTokens(
   allTokens: string[],
   segmentStartIndex: number
-): string[] {
-  let segment = allTokens.slice(segmentStartIndex);
+): { tokens: string[]; isPunctReset: boolean } {
+  let isPunctReset = false;
 
-  const lastPunctIndex = findLastIndex(segment, t => /[.!?]/.test(t.slice(-1)));
+  const lastPunctIndex = findLastIndex(allTokens, t =>
+    /[.!?]/.test(t.slice(-1))
+  );
 
+  let segment: string[];
   if (lastPunctIndex !== -1) {
-    segment = segment.slice(lastPunctIndex + 1);
+    segment = allTokens.slice(lastPunctIndex + 1);
+    isPunctReset = true;
+  } else {
+    segment = allTokens.slice(segmentStartIndex);
   }
 
   if (segment.length > CONTEXT_WINDOW) {
     segment = segment.slice(-CONTEXT_WINDOW);
   }
 
-  return segment;
+  return { tokens: segment, isPunctReset };
 }
 
-class LocalPredictiveProvider implements SurmiserProvider {
+class LocalPredictiveProvider implements LocalProvider {
   id = 'local-predictive';
   priority = 10;
   private segmentStartIndex = 0;
@@ -56,13 +62,16 @@ class LocalPredictiveProvider implements SurmiserProvider {
     const allTokens = tokenize(input);
     if (allTokens.length === 0) return null;
 
-    const segmentTokens = getSegmentTokens(allTokens, this.segmentStartIndex);
+    const { tokens: segmentTokens, isPunctReset } = getSegmentTokens(
+      allTokens,
+      this.segmentStartIndex
+    );
     if (segmentTokens.length === 0) return null;
 
     const isFreshInput =
       this.segmentStartIndex === 0 && segmentTokens.length === allTokens.length;
 
-    if (segmentTokens.length === 1 && !isFreshInput) {
+    if (segmentTokens.length === 1 && !isFreshInput && !isPunctReset) {
       return null;
     }
 
@@ -94,7 +103,6 @@ class LocalPredictiveProvider implements SurmiserProvider {
       const inputPrefix = segmentTokens.slice(-matchLen);
       const inputLastToken = inputPrefix[matchLen - 1];
       let foundMatchAtThisLevel = false;
-
       for (const { tokens: phraseTokens } of this.processedPhrases) {
         if (phraseTokens.length < matchLen) continue;
 
@@ -140,7 +148,7 @@ class LocalPredictiveProvider implements SurmiserProvider {
             }
           }
 
-          const confidence = matchLen >= 3 ? 95 : matchLen >= 2 ? 90 : 80;
+          const confidence = matchLen >= 3 ? 85 : matchLen >= 2 ? 80 : 75;
 
           if (suggestionText && (!bestMatch || matchLen > bestMatch.matchLen)) {
             bestMatch = { text: suggestionText, confidence, matchLen };
@@ -167,6 +175,6 @@ class LocalPredictiveProvider implements SurmiserProvider {
 
 export function localPredictive(
   phrases: string[] = defaultCorpus
-): SurmiserProvider {
+): LocalProvider {
   return new LocalPredictiveProvider(phrases);
 }

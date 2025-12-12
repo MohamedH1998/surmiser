@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { SurmiserProvider, SurmiserInput, useSurmiser } from 'surmiser/react';
-import { attachSurmiser } from 'surmiser';
+import {
+  attachSurmiser,
+  localPredictive,
+  type SuggestionContext,
+} from 'surmiser';
 import { Input } from './components/ui/input';
 
 // @CHECK: When custom corpus at the input, should it be additive or replacement? Maybe if using a provider it should be additive, otherwise it should be replacement.
@@ -37,6 +41,8 @@ const GREETINGS = [
   'custom greetings 3',
   "hi! i think you're great?",
   "no way!!! seriously?? that's wild...",
+  'hello zzz',
+  'helly what the helly',
   'ok... fine! but why??',
   'he said (quietly) wow!',
   'amazing! right?',
@@ -45,6 +51,21 @@ const GREETINGS = [
   'lol?? no way bro...',
   "he literally said 'go now!' and left.",
 ];
+
+const customProvider = {
+  id: 'custom',
+  priority: 100,
+  suggest: async (ctx: SuggestionContext) => {
+    console.log('🔴 - custom provider suggest', ctx);
+    return null;
+  },
+};
+
+const customProviderProps = {
+  provider: customProvider,
+  debounceMs: 100,
+  minConfidence: 70,
+};
 
 /* 1. Vanilla JS attach() - default corpus */
 const VanillaDefaultExample = () => {
@@ -164,6 +185,39 @@ const WithProviderInherit = () => {
 const WithProviderAdditive = () => {
   const { attachRef } = useSurmiser({
     corpus: ['custom additive phrase', 'another custom phrase'],
+  });
+
+  return (
+    <Input
+      ref={attachRef}
+      placeholder="Type 'custom' or provider terms..."
+      className="w-full p-3 border rounded"
+    />
+  );
+};
+
+//  8. With  Custom Provider Logic
+const WithCustomProvider = () => {
+  const { attachRef } = useSurmiser();
+
+  return (
+    <Input
+      ref={attachRef}
+      placeholder="Type 'custom' or provider terms..."
+      className="w-full p-3 border rounded"
+    />
+  );
+};
+
+const RemoteEndpointCustomInput = () => {
+  const { attachRef } = useSurmiser({
+    providers: [
+      {
+        id: 'ai',
+        endpoint: '/api/surmiser-suggest',
+      },
+      localPredictive(GREETINGS),
+    ],
   });
 
   return (
@@ -359,6 +413,116 @@ function App() {
             </div>
           </div>
         </SurmiserProvider>
+      </section>
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-2xl font-semibold mb-1">
+            React With Custom Provider
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Shared configuration across multiple inputs
+          </p>
+        </div>
+
+        <SurmiserProvider {...customProviderProps}>
+          <div className="space-y-3">
+            <div>
+              <h3 className="font-medium mb-1">10. Custom provider</h3>
+              <p className="text-sm text-gray-500 mb-2">
+                Uses custom provider logic
+              </p>
+
+              <WithCustomProvider />
+            </div>
+          </div>
+        </SurmiserProvider>
+      </section>
+      <section className="space-y-4">
+        <div>
+          <div>
+            <h2 className="text-2xl font-semibold mb-1">Remote AI Provider</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              LLM-powered suggestions via remote endpoint
+            </p>
+          </div>
+
+          <SurmiserProvider
+            providers={{
+              id: 'ai',
+              endpoint: '/api/surmiser-suggest',
+            }}
+          >
+            <div className="space-y-3">
+              <div>
+                <h3 className="font-medium mb-1">11. Remote endpoint</h3>
+                <p className="text-sm text-gray-500 mb-2">
+                  Type &quot;hello&quot; to see AI suggestion &quot; world&quot;
+                  (mock endpoint)
+                </p>
+                <SurmiserInput
+                  placeholder="Try typing 'hello'..."
+                  className="w-full p-3 border rounded"
+                />
+              </div>
+            </div>
+          </SurmiserProvider>
+          <SurmiserProvider
+            providers={[
+              {
+                id: 'ai',
+                endpoint: '/api/surmiser-suggest',
+              },
+              localPredictive(GREETINGS),
+            ]}
+          >
+            <div className="space-y-3">
+              <div>
+                <h3 className="font-medium mb-1">
+                  12. Remote endpoint w/local predictive
+                </h3>
+                <p className="text-sm text-gray-500 mb-2">
+                  Type &quot;hello&quot; to see AI suggestion &quot; world&quot;
+                  (mock endpoint)
+                </p>
+                <SurmiserInput
+                  placeholder="Try typing 'hello'..."
+                  className="w-full p-3 border rounded"
+                />
+              </div>
+            </div>
+          </SurmiserProvider>
+          <div className="space-y-3">
+            <div>
+              <h3 className="font-medium mb-1">
+                13. Remote endpoint w/o provider
+              </h3>
+              <p className="text-sm text-gray-500 mb-2">
+                Type &quot;hello&quot; to see AI suggestion &quot; world&quot;
+                (mock endpoint)
+              </p>
+              <SurmiserInput
+                providers={{
+                  id: 'ai',
+                  endpoint: '/api/surmiser-suggest',
+                }}
+                placeholder="Try typing 'hello'..."
+                className="w-full p-3 border rounded"
+              />
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <h3 className="font-medium mb-1">
+                13. Remote endpoint w/o provider
+              </h3>
+              <p className="text-sm text-gray-500 mb-2">
+                Type &quot;hello&quot; to see AI suggestion &quot; world&quot;
+                (mock endpoint)
+              </p>
+              <RemoteEndpointCustomInput />
+            </div>
+          </div>
+        </div>
       </section>
       <section className="space-y-4">
         <div>

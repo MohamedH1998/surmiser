@@ -1,11 +1,22 @@
-import type { SuggestionContext, Suggestion, SurmiserOptions } from './types';
+import type { SuggestionContext, Suggestion, SurmiserOptions, SurmiserProvider } from './types';
+import { isRemoteProvider, fetchRemoteSuggestion } from './remote-provider';
 
 export class SurmiserEngine {
   private abortController: AbortController | null = null;
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
   private currentSuggestion: Suggestion | null = null;
+  private options: SurmiserOptions;
+  private providers: SurmiserProvider[];
 
-  constructor(private options: SurmiserOptions) {}
+  constructor(options: SurmiserOptions) {
+    this.options = options;
+
+    this.providers = options.providers
+      ? Array.isArray(options.providers)
+        ? options.providers
+        : [options.providers]
+      : [];
+  }
 
   requestSuggestion(ctx: SuggestionContext): void {
     this.cancel();
@@ -25,9 +36,11 @@ export class SurmiserEngine {
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
 
-    const providers = [...this.options.providers!].sort(
-      (a, b) => b.priority - a.priority
-    );
+    const providers = [...this.providers].sort((a, b) => {
+      const aPriority = a.priority ?? 10;
+      const bPriority = b.priority ?? 10;
+      return bPriority - aPriority;
+    });
 
     let bestSuggestion: Suggestion | null = null;
 
@@ -35,7 +48,13 @@ export class SurmiserEngine {
       if (signal.aborted) return;
 
       try {
-        const suggestion = await provider.suggest(ctx, signal);
+        let suggestion: Suggestion | null = null;
+
+        if (isRemoteProvider(provider)) {
+          suggestion = await fetchRemoteSuggestion(provider, ctx, signal);
+        } else {
+          suggestion = await provider.suggest(ctx, signal);
+        }
 
         if (signal.aborted) return;
 
@@ -96,9 +115,10 @@ export class SurmiserEngine {
   }
 
   markSegmentBoundary(tokenCount: number): void {
-    const providers = this.options.providers || [];
-    for (const provider of providers) {
-      provider.markSegmentBoundary?.(tokenCount);
+    for (const provider of this.providers) {
+      if (!isRemoteProvider(provider)) {
+        provider.markSegmentBoundary?.(tokenCount);
+      }
     }
   }
 

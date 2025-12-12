@@ -1,13 +1,10 @@
 import { forwardRef, useCallback } from 'react';
 import { useSurmiser } from './useSurmiser';
-import type { SurmiserProvider } from '../types';
+import type { SurmiserOptions } from '../types';
 
-interface SurmiserInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  corpus?: string[];
-  providers?: SurmiserProvider[];
-  debounceMs?: number;
-  minConfidence?: number;
-}
+interface SurmiserInputProps
+  extends Pick<SurmiserOptions, 'corpus' | 'providers' | 'debounceMs' | 'minConfidence'>,
+          React.InputHTMLAttributes<HTMLInputElement> {}
 
 /**
  * Convenience component for quick start. Works standalone or within a SurmiserProvider.
