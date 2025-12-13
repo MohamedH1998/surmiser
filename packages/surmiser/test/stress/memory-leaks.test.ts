@@ -15,10 +15,10 @@ describe('Memory Leaks Stress Test', () => {
 
     const iterations = 1000;
 
-    // We expect 8 listeners to be added per attach
-    // input, keydown, blur, compositionstart, compositionend, touchstart, touchend (from attach)
+    // We expect 10 listeners to be added per attach
+    // input, keydown, keyup, click, blur, compositionstart, compositionend, touchstart, touchend (from attach)
     // + scroll (from renderer)
-    const LISTENERS_COUNT = 8;
+    const LISTENERS_COUNT = 10;
 
     for (let i = 0; i < iterations; i++) {
       const detach = attachSurmiser(input, { corpus: ['test'] });

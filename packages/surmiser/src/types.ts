@@ -10,9 +10,23 @@ export interface Suggestion {
   providerId: string;
 }
 
-export interface SurmiserProvider {
+export interface RemoteProviderConfig {
   id: string;
-  priority: number;
+  priority?: number;
+  endpoint: string;
+  timeoutMs?: number;
+  headers?: Record<string, string>;
+  meta?: Record<string, unknown>;
+}
+
+export interface RemoteSuggestionResponse {
+  suggestion: string;
+  confidence: number; // 0-100 scale (matches local provider)
+}
+
+export interface LocalProvider {
+  id: string;
+  priority?: number;
   suggest(
     ctx: SuggestionContext,
     signal: AbortSignal
@@ -20,8 +34,10 @@ export interface SurmiserProvider {
   markSegmentBoundary?: (tokenCount: number) => void;
 }
 
+export type SurmiserProvider = LocalProvider | RemoteProviderConfig;
+
 export interface SurmiserOptions {
-  providers?: SurmiserProvider[];
+  providers?: SurmiserProvider | SurmiserProvider[];
   corpus?: string[];
   debounceMs?: number;
   minConfidence?: number;

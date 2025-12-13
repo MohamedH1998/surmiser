@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo } from 'react';
-import type { SurmiserProvider as Provider } from '../types';
+import type { SurmiserProvider as Provider, SurmiserOptions } from '../types';
 import { localPredictive } from '../defaults';
 
 interface SurmiserContextValue {
@@ -14,34 +14,17 @@ export function useSurmiserContext() {
   return useContext(SurmiserContext);
 }
 
-interface SurmiserProviderProps {
-  /**
-   * Simple string array for quick setup.
-   * Mutually exclusive with `provider`.
-   *
-   * @example corpus={['hello', 'world']}
-   */
-  corpus?: string[];
-
-  /**
-   * Advanced: full Provider objects for custom logic (LLM, API, etc)
-   * Mutually exclusive with `corpus`.
-   * - Pass `string[]` for simple predictive text (same as corpus)
-   * - Pass `Provider` or `Provider[]` for advanced use cases
-   *
-   * @example provider={customAPIProvider}
-   */
-  provider?: Provider | Provider[] | string[];
-
-  debounceMs?: number;
-  minConfidence?: number;
+interface SurmiserProviderProps extends Pick<
+  SurmiserOptions,
+  'corpus' | 'providers' | 'debounceMs' | 'minConfidence'
+> {
   children: React.ReactNode;
 }
 
 /**
- * Optional context provider for Surmiser. Use to share configuration across multiple inputs.
+ * Optional context providers for Surmiser. Use to share configuration across multiple inputs.
  *
- * Note: This provider is optional. Components can use useSurmiser() standalone without it.
+ * Note: This providers is optional. Components can use useSurmiser() standalone without it.
  *
  * @example
  * ```tsx
@@ -56,38 +39,36 @@ interface SurmiserProviderProps {
  * </SurmiserProvider>
  *
  * // Advanced: Custom Provider
- * <SurmiserProvider provider={customAPIProvider}>
+ * <SurmiserProvider providers={customAPIProvider}>
  *   <App />
  * </SurmiserProvider>
  *
- * // Standalone usage (no provider needed)
+ * // Standalone usage (no providers needed)
  * <SurmiserInput corpus={['standalone']} />
  * ```
  */
 export function SurmiserProvider({
   corpus,
-  provider,
+  providers,
   debounceMs,
   minConfidence,
   children,
 }: SurmiserProviderProps) {
-  // Stabilize corpus/provider to prevent re-renders from inline arrays/objects
+  // Stabilize corpus/providers to prevent re-renders from inline arrays/objects
   const corpusKey = corpus ? JSON.stringify(corpus) : undefined;
-  const providerKey = useMemo(() => {
-    if (!provider) return undefined;
-    if (Array.isArray(provider)) {
-      return typeof provider[0] === 'string'
-        ? JSON.stringify(provider)
-        : JSON.stringify((provider as Provider[]).map(p => p.id));
+  const providersKey = useMemo(() => {
+    if (!providers) return undefined;
+    if (Array.isArray(providers)) {
+      return JSON.stringify((providers as Provider[]).map(p => p.id));
     }
-    return (provider as Provider).id;
-  }, [provider]);
+    return (providers as Provider).id;
+  }, [providers]);
 
-  const providers = useMemo(() => {
-    if (corpus && provider) {
+  const mergedProviders = useMemo(() => {
+    if (corpus && providers) {
       throw new Error(
-        "SurmiserProvider: Cannot use both 'corpus' and 'provider'. " +
-          "Use 'corpus' for simple arrays, or 'provider' for advanced use cases."
+        "SurmiserProvider: Cannot use both 'corpus' and 'providers'. " +
+          "Use 'corpus' for simple arrays, or 'providers' for advanced use cases."
       );
     }
 
@@ -95,23 +76,19 @@ export function SurmiserProvider({
       return [localPredictive(corpus)];
     }
 
-    if (!provider) {
+    if (!providers) {
       return [localPredictive()];
     }
 
-    if (Array.isArray(provider) && typeof provider[0] === 'string') {
-      return [localPredictive(provider as string[])];
-    }
-
-    return Array.isArray(provider)
-      ? (provider as Provider[])
-      : [provider as Provider];
+    return Array.isArray(providers)
+      ? (providers as Provider[])
+      : [providers as Provider];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [corpus, corpusKey, provider, providerKey]);
+  }, [corpus, corpusKey, providers, providersKey]);
 
   const contextValue = useMemo(
-    () => ({ providers, debounceMs, minConfidence }),
-    [providers, debounceMs, minConfidence]
+    () => ({ providers: mergedProviders, debounceMs, minConfidence }),
+    [mergedProviders, debounceMs, minConfidence]
   );
 
   return (

@@ -1,22 +1,12 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { SurmiserProvider, SurmiserInput, useSurmiser } from 'surmiser/react';
-import { attachSurmiser } from 'surmiser';
+import {
+  attachSurmiser,
+  localPredictive,
+  type SuggestionContext,
+  type Suggestion,
+} from 'surmiser';
 import { Input } from './components/ui/input';
-
-// @CHECK: When custom corpus at the input, should it be additive or replacement? Maybe if using a provider it should be additive, otherwise it should be replacement.
-
-// @TODO: Make sure tests cover these examples
-
-// ORDER (example progression)
-// 1. Vanilla JS attach() - default corpus
-// 2. Vanilla JS attach() - custom corpus
-// 3. Standalone hook - default corpus
-// 4. Standalone hook - custom corpus
-// 5. SurmiserInput - default corpus
-// 6. SurmiserInput - custom corpus
-// 7. With Provider - inherited corpus
-// 8. With Provider - additive corpus
-// 9. Advanced patterns (re-renders, dynamic corpus)
 
 // Corpus examples
 const SPORTS = [
@@ -45,6 +35,24 @@ const GREETINGS = [
   'lol?? no way bro...',
   "he literally said 'go now!' and left.",
 ];
+
+const customProvider = {
+  id: 'custom',
+  priority: 100,
+  suggest: async () => {
+    return {
+      text: 'custom provider suggestion',
+      confidence: 100,
+      providerId: 'custom',
+    };
+  },
+};
+
+const customProviderProps = {
+  providers: customProvider,
+  debounceMs: 100,
+  minConfidence: 70,
+};
 
 /* 1. Vanilla JS attach() - default corpus */
 const VanillaDefaultExample = () => {
@@ -87,6 +95,41 @@ const VanillaCustomExample = () => {
       placeholder="Type 'custom', 'lol', 'hi'..."
       className="w-full p-3 border rounded"
     />
+  );
+};
+
+/* 2b. Vanilla JS with all options */
+const VanillaWithOptions = () => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [log, setLog] = useState<string>('');
+
+  useEffect(() => {
+    if (!inputRef.current) return;
+
+    const detach = attachSurmiser(inputRef.current, {
+      corpus: SPORTS,
+      debounceMs: 100,
+      minConfidence: 70,
+      onSuggestion: s => {
+        setLog(s ? `Suggestion: "${s.text}"` : 'Cleared');
+      },
+      onAccept: s => {
+        setLog(`Accepted: "${s.text}"`);
+      },
+    });
+
+    return () => detach();
+  }, []);
+
+  return (
+    <div className="space-y-2">
+      <input
+        ref={inputRef}
+        placeholder="Type 'arsenal'..."
+        className="w-full p-3 border rounded"
+      />
+      {log && <div className="text-xs text-gray-600">{log}</div>}
+    </div>
   );
 };
 
@@ -175,6 +218,39 @@ const WithProviderAdditive = () => {
   );
 };
 
+//  8. With  Custom Provider Logic
+const WithCustomProvider = () => {
+  const { attachRef } = useSurmiser();
+
+  return (
+    <Input
+      ref={attachRef}
+      placeholder="Type 'custom' or provider terms..."
+      className="w-full p-3 border rounded"
+    />
+  );
+};
+
+const RemoteEndpointCustomInput = () => {
+  const { attachRef } = useSurmiser({
+    providers: [
+      {
+        id: 'ai',
+        endpoint: '/api/surmiser-suggest',
+      },
+      localPredictive(GREETINGS),
+    ],
+  });
+
+  return (
+    <Input
+      ref={attachRef}
+      placeholder="Type 'custom' or provider terms..."
+      className="w-full p-3 border rounded"
+    />
+  );
+};
+
 /* 9a. Advanced: multiple re-renders (now actually memoized) */
 const RerenderStressTest = () => {
   const [count, setCount] = useState(0);
@@ -247,6 +323,227 @@ const DynamicCorpus = () => {
   );
 };
 
+/* Config Overrides: debounceMs at provider level */
+const ConfigDebounceProvider = () => {
+  const { attachRef } = useSurmiser();
+
+  return (
+    <Input
+      ref={attachRef}
+      placeholder="Type 'feature'... (500ms debounce)"
+      className="w-full p-3 border rounded"
+    />
+  );
+};
+
+/* Config Overrides: debounceMs at hook level */
+const ConfigDebounceHook = () => {
+  const { attachRef } = useSurmiser({
+    corpus: SPORTS,
+    debounceMs: 50,
+  });
+
+  return (
+    <Input
+      ref={attachRef}
+      placeholder="Type 'arsenal'... (50ms debounce)"
+      className="w-full p-3 border rounded"
+    />
+  );
+};
+
+/* Config Overrides: minConfidence */
+const ConfigMinConfidence = () => {
+  const { attachRef } = useSurmiser({
+    corpus: GREETINGS,
+    minConfidence: 50,
+  });
+
+  return (
+    <Input
+      ref={attachRef}
+      placeholder="Type 'hello'... (90% min confidence)"
+      className="w-full p-3 border rounded"
+    />
+  );
+};
+
+/* Multiple providers with priority */
+const highPriorityProvider = {
+  id: 'high-priority',
+  priority: 100,
+  suggest: async (ctx: SuggestionContext) => {
+    if (ctx.text.startsWith('urgent')) {
+      return {
+        text: ' - handled by high priority provider!',
+        confidence: 95,
+        providerId: 'high-priority',
+      };
+    }
+    return null;
+  },
+};
+
+const lowPriorityProvider = {
+  id: 'low-priority',
+  priority: 10,
+  suggest: async (ctx: SuggestionContext) => {
+    if (ctx.text.startsWith('urgent')) {
+      return {
+        text: ' - handled by low priority (will be ignored)',
+        confidence: 90,
+        providerId: 'low-priority',
+      };
+    }
+    return null;
+  },
+};
+
+const MultipleProvidersWithPriority = () => {
+  const { attachRef } = useSurmiser({
+    providers: [lowPriorityProvider, highPriorityProvider],
+  });
+
+  return (
+    <Input
+      ref={attachRef}
+      placeholder="Type 'urgent'... (high priority wins)"
+      className="w-full p-3 border rounded"
+    />
+  );
+};
+
+/* Callbacks: onSuggestion */
+const WithOnSuggestion = () => {
+  const [log, setLog] = useState<string[]>([]);
+
+  const { attachRef } = useSurmiser({
+    corpus: SPORTS,
+    onSuggestion: (s: Suggestion | null) => {
+      setLog(prev => [
+        ...prev.slice(-4),
+        s ? `Suggestion: "${s.text}" (${s.confidence}%)` : 'Suggestion cleared',
+      ]);
+    },
+  });
+
+  return (
+    <div className="space-y-2">
+      <Input
+        ref={attachRef}
+        placeholder="Type 'arsenal'..."
+        className="w-full p-3 border rounded"
+      />
+      <div className="text-xs text-gray-600 space-y-1">
+        {log.map((l, i) => (
+          <div key={i}>{l}</div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/* Callbacks: onAccept */
+const WithOnAccept = () => {
+  const [accepted, setAccepted] = useState<string[]>([]);
+
+  const { attachRef } = useSurmiser({
+    corpus: DEV_TERMS,
+    onAccept: (s: Suggestion) => {
+      setAccepted(prev => [...prev, s.text]);
+    },
+  });
+
+  return (
+    <div className="space-y-2">
+      <Input
+        ref={attachRef}
+        placeholder="Type 'feature'... (Tab to accept)"
+        className="w-full p-3 border rounded"
+      />
+      {accepted.length > 0 && (
+        <div className="text-xs text-gray-600">
+          Accepted: {accepted.join(', ')}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* Uncontrolled input */
+const UncontrolledInput = () => {
+  return (
+    <SurmiserInput
+      defaultValue=""
+      corpus={SPORTS}
+      placeholder="Type 'arsenal'... (uncontrolled)"
+      className="w-full p-3 border rounded"
+    />
+  );
+};
+
+/* Provider with only config (no corpus) */
+const ProviderConfigOnly = () => {
+  const { attachRef } = useSurmiser({
+    corpus: GREETINGS,
+  });
+
+  return (
+    <Input
+      ref={attachRef}
+      placeholder="Type 'hello'... (inherits debounce/minConf)"
+      className="w-full p-3 border rounded"
+    />
+  );
+};
+
+/* SurmiserInput with config overrides */
+const SurmiserInputConfigOverride = () => {
+  const [value, setValue] = useState('');
+
+  return (
+    <SurmiserInput
+      value={value}
+      onChange={e => setValue(e.target.value)}
+      debounceMs={100}
+      minConfidence={80}
+      placeholder="Type 'feature'... (overrides provider config)"
+      className="w-full p-3 border rounded"
+    />
+  );
+};
+
+/* SurmiserInput with multiple providers */
+const SurmiserInputMultipleProviders = () => {
+  const [value, setValue] = useState('');
+
+  return (
+    <SurmiserInput
+      value={value}
+      onChange={e => setValue(e.target.value)}
+      providers={[
+        localPredictive(GREETINGS),
+        {
+          id: 'custom-inline',
+          priority: 50,
+          suggest: async (ctx: SuggestionContext) => {
+            if (ctx.text.startsWith('inline')) {
+              return {
+                text: ' provider suggestion!',
+                confidence: 85,
+                providerId: 'custom-inline',
+              };
+            }
+            return null;
+          },
+        },
+      ]}
+      placeholder="Type 'hello' or 'inline'..."
+      className="w-full p-3 border rounded"
+    />
+  );
+};
+
 function App() {
   return (
     <div className="max-w-4xl mx-auto p-8 space-y-8">
@@ -277,6 +574,14 @@ function App() {
               Replaces default with GREETINGS corpus
             </p>
             <VanillaCustomExample />
+          </div>
+
+          <div>
+            <h3 className="font-medium mb-1">2b. All options</h3>
+            <p className="text-sm text-gray-500 mb-2">
+              Custom corpus + debounce + minConfidence + callbacks
+            </p>
+            <VanillaWithOptions />
           </div>
         </div>
       </section>
@@ -320,6 +625,16 @@ function App() {
             </p>
             <SurmiserInputWithCorpus />
           </div>
+
+          <div>
+            <h3 className="font-medium mb-1">
+              6b. SurmiserInput (multiple providers)
+            </h3>
+            <p className="text-sm text-gray-500 mb-2">
+              Mix local predictive + custom provider
+            </p>
+            <SurmiserInputMultipleProviders />
+          </div>
         </div>
       </section>
       <section className="space-y-4">
@@ -362,12 +677,265 @@ function App() {
       </section>
       <section className="space-y-4">
         <div>
+          <h2 className="text-2xl font-semibold mb-1">
+            React With Custom Provider
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Shared configuration across multiple inputs
+          </p>
+        </div>
+
+        <SurmiserProvider {...customProviderProps}>
+          <div className="space-y-3">
+            <div>
+              <h3 className="font-medium mb-1">10. Custom provider</h3>
+              <p className="text-sm text-gray-500 mb-2">
+                Uses custom provider logic
+              </p>
+
+              <WithCustomProvider />
+            </div>
+          </div>
+        </SurmiserProvider>
+      </section>
+      <section className="space-y-4">
+        <div>
+          <div>
+            <h2 className="text-2xl font-semibold mb-1">Remote AI Provider</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              LLM-powered suggestions via remote endpoint
+            </p>
+          </div>
+
+          <SurmiserProvider
+            providers={{
+              id: 'ai',
+              endpoint: '/api/surmiser-suggest',
+            }}
+          >
+            <div className="space-y-3">
+              <div>
+                <h3 className="font-medium mb-1">11. Remote endpoint</h3>
+                <p className="text-sm text-gray-500 mb-2">
+                  Type &quot;hello&quot; to see AI suggestion &quot; world&quot;
+                  (mock endpoint)
+                </p>
+                <SurmiserInput
+                  placeholder="Try typing 'hello'..."
+                  className="w-full p-3 border rounded"
+                />
+              </div>
+            </div>
+          </SurmiserProvider>
+          <SurmiserProvider
+            providers={[
+              {
+                id: 'ai',
+                endpoint: '/api/surmiser-suggest',
+              },
+              localPredictive(GREETINGS),
+            ]}
+          >
+            <div className="space-y-3">
+              <div>
+                <h3 className="font-medium mb-1">
+                  12. Remote endpoint w/local predictive
+                </h3>
+                <p className="text-sm text-gray-500 mb-2">
+                  Type &quot;hello&quot; to see AI suggestion &quot; world&quot;
+                  (mock endpoint)
+                </p>
+                <SurmiserInput
+                  placeholder="Try typing 'hello'..."
+                  className="w-full p-3 border rounded"
+                />
+              </div>
+            </div>
+          </SurmiserProvider>
+          <div className="space-y-3">
+            <div>
+              <h3 className="font-medium mb-1">
+                13. Remote endpoint w/o provider
+              </h3>
+              <p className="text-sm text-gray-500 mb-2">
+                Type &quot;hello&quot; to see AI suggestion &quot; world&quot;
+                (mock endpoint)
+              </p>
+              <SurmiserInput
+                providers={{
+                  id: 'ai',
+                  endpoint: '/api/surmiser-suggest',
+                }}
+                placeholder="Try typing 'hello'..."
+                className="w-full p-3 border rounded"
+              />
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <h3 className="font-medium mb-1">
+                13. Remote endpoint w/o provider
+              </h3>
+              <p className="text-sm text-gray-500 mb-2">
+                Type &quot;hello&quot; to see AI suggestion &quot; world&quot;
+                (mock endpoint)
+              </p>
+              <RemoteEndpointCustomInput />
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-2xl font-semibold mb-1">Config Overrides</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            debounceMs and minConfidence at different levels
+          </p>
+        </div>
+
+        <SurmiserProvider
+          corpus={DEV_TERMS}
+          debounceMs={500}
+          minConfidence={75}
+        >
+          <div className="space-y-3">
+            <div>
+              <h3 className="font-medium mb-1">Provider-level debounce</h3>
+              <p className="text-sm text-gray-500 mb-2">
+                500ms debounce from provider
+              </p>
+              <ConfigDebounceProvider />
+            </div>
+
+            <div>
+              <h3 className="font-medium mb-1">Hook-level debounce override</h3>
+              <p className="text-sm text-gray-500 mb-2">
+                50ms debounce at hook level (overrides provider)
+              </p>
+              <ConfigDebounceHook />
+            </div>
+
+            <div>
+              <h3 className="font-medium mb-1">Hook-level minConfidence</h3>
+              <p className="text-sm text-gray-500 mb-2">
+                90% min confidence (vs 75% provider default)
+              </p>
+              <ConfigMinConfidence />
+            </div>
+
+            <div>
+              <h3 className="font-medium mb-1">
+                SurmiserInput config override
+              </h3>
+              <p className="text-sm text-gray-500 mb-2">
+                Overrides provider debounce and minConfidence
+              </p>
+              <SurmiserInputConfigOverride />
+            </div>
+          </div>
+        </SurmiserProvider>
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-2xl font-semibold mb-1">
+            Provider Config Only (No Corpus)
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Share debounce/minConfidence without corpus
+          </p>
+        </div>
+
+        <SurmiserProvider debounceMs={300} minConfidence={80}>
+          <div className="space-y-3">
+            <div>
+              <h3 className="font-medium mb-1">Config-only provider</h3>
+              <p className="text-sm text-gray-500 mb-2">
+                Hook provides corpus, provider provides config
+              </p>
+              <ProviderConfigOnly />
+            </div>
+          </div>
+        </SurmiserProvider>
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-2xl font-semibold mb-1">
+            Multiple Providers with Priority
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Higher priority wins when multiple suggestions available
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <h3 className="font-medium mb-1">Priority ordering</h3>
+            <p className="text-sm text-gray-500 mb-2">
+              High priority (100) beats low priority (10)
+            </p>
+            <MultipleProvidersWithPriority />
+          </div>
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-2xl font-semibold mb-1">Callbacks</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            React to suggestion changes and acceptances
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <h3 className="font-medium mb-1">onSuggestion callback</h3>
+            <p className="text-sm text-gray-500 mb-2">
+              Fires on every suggestion change
+            </p>
+            <WithOnSuggestion />
+          </div>
+
+          <div>
+            <h3 className="font-medium mb-1">onAccept callback</h3>
+            <p className="text-sm text-gray-500 mb-2">
+              Fires when user accepts suggestion (Tab)
+            </p>
+            <WithOnAccept />
+          </div>
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-2xl font-semibold mb-1">
+            Alternative Input Types
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Works with textarea and uncontrolled inputs
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <h3 className="font-medium mb-1">Uncontrolled input</h3>
+            <p className="text-sm text-gray-500 mb-2">
+              SurmiserInput with defaultValue (no value prop)
+            </p>
+            <UncontrolledInput />
+          </div>
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div>
           <h2 className="text-2xl font-semibold mb-1">Advanced Patterns</h2>
         </div>
 
         <div className="space-y-3">
           <div>
-            <h3 className="font-medium mb-1">10. Multiple re-renders</h3>
+            <h3 className="font-medium mb-1">Multiple re-renders</h3>
             <p className="text-sm text-gray-500 mb-2">
               Inline corpus stabilized via useMemo
             </p>
@@ -375,7 +943,7 @@ function App() {
           </div>
 
           <div>
-            <h3 className="font-medium mb-1">11. Dynamic corpus</h3>
+            <h3 className="font-medium mb-1">Dynamic corpus</h3>
             <p className="text-sm text-gray-500 mb-2">
               Corpus changes based on selected mode
             </p>

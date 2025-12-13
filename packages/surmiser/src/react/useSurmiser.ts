@@ -59,6 +59,13 @@ export function useSurmiser(options: UseSurmiserOptions = {}) {
     minConfidence: ctxMinConf,
   } = context || {};
 
+  if (options.corpus && options.providers) {
+    throw new Error(
+      "useSurmiser: Cannot use both 'corpus' and 'providers'. " +
+        "Use 'corpus' for simple arrays, or 'providers' for advanced use cases."
+    );
+  }
+
   const stableCorpus = useMemo(
     () => options.corpus,
     [options.corpus ? JSON.stringify(options.corpus) : undefined]
@@ -67,7 +74,11 @@ export function useSurmiser(options: UseSurmiserOptions = {}) {
     () => options.providers,
     [
       options.providers
-        ? JSON.stringify(options.providers?.map(p => p.id))
+        ? JSON.stringify(
+            Array.isArray(options.providers)
+              ? options.providers.map(p => p.id)
+              : [options.providers.id]
+          )
         : undefined,
     ]
   );
@@ -86,7 +97,9 @@ export function useSurmiser(options: UseSurmiserOptions = {}) {
     let finalProviders: SurmiserProvider[];
 
     if (stableProviders) {
-      finalProviders = stableProviders;
+      finalProviders = Array.isArray(stableProviders)
+        ? stableProviders
+        : [stableProviders];
     } else if (stableCorpus) {
       finalProviders = context
         ? [localPredictive(stableCorpus), ...ctxProviders]

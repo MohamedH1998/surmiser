@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { attachSurmiser } from '../../src/attach';
-import type { SurmiserOptions } from '../../src/types';
+import type { SurmiserOptions, LocalProvider } from '../../src/types';
 
 describe('DOM Scenarios Edge Cases', () => {
   let inputs: HTMLInputElement[] = [];
@@ -56,15 +56,22 @@ describe('DOM Scenarios Edge Cases', () => {
     input1.dispatchEvent(new Event('input', { bubbles: true }));
     await new Promise(r => setTimeout(r, 10));
 
-    expect(options1.providers?.[0]?.suggest).toHaveBeenCalled();
-    expect(options2.providers?.[0]?.suggest).not.toHaveBeenCalled();
+    const providers1 = Array.isArray(options1.providers)
+      ? options1.providers
+      : [options1.providers!];
+    const providers2 = Array.isArray(options2.providers)
+      ? options2.providers
+      : [options2.providers!];
+
+    expect((providers1[0] as LocalProvider)?.suggest).toHaveBeenCalled();
+    expect((providers2[0] as LocalProvider)?.suggest).not.toHaveBeenCalled();
 
     // Type in input 2
     input2.value = 'xyz';
     input2.dispatchEvent(new Event('input', { bubbles: true }));
     await new Promise(r => setTimeout(r, 10));
 
-    expect(options2.providers?.[0]?.suggest).toHaveBeenCalled();
+    expect((providers2[0] as LocalProvider)?.suggest).toHaveBeenCalled();
   });
 
   it('updates ghost position on scroll', async () => {
