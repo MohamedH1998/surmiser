@@ -16,7 +16,6 @@ export default [
       '**/playwright-report/**',
       '**/test-results/**',
       '**/next/**',
-      
     ],
   },
 

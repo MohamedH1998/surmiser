@@ -192,7 +192,6 @@ Commit types:
 - `chore:` - Build process, dependencies, etc.
 - `perf:` - Performance improvements
 
-
 ### 4. Push and Create PR
 
 ```bash
@@ -225,7 +224,6 @@ Include:
 4. **Testing** - How was this tested?
 5. **Screenshots** - For UI changes (optional)
 6. **Breaking Changes** - If applicable
-
 
 ### Review Process
 
