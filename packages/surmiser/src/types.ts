@@ -1,12 +1,12 @@
 export interface SuggestionContext {
-  text: string;
+  inputValue: string;
   cursorPosition: number;
   lastTokens: string[];
 }
 
 export interface Suggestion {
-  text: string;
-  confidence: number;
+  completion: string;
+  confidence: number; // 0-1 scale
   providerId: string;
 }
 
@@ -21,7 +21,7 @@ export interface RemoteProviderConfig {
 
 export interface RemoteSuggestionResponse {
   suggestion: string;
-  confidence: number; // 0-100 scale (matches local provider)
+  confidence: number; // 0-1 scale
 }
 
 export interface LocalProvider {

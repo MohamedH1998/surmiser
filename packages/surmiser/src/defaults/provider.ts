@@ -55,7 +55,7 @@ class LocalPredictiveProvider implements LocalProvider {
   }
 
   async suggest(ctx: SuggestionContext): Promise<Suggestion | null> {
-    const textBeforeCursor = ctx.text.slice(0, ctx.cursorPosition);
+    const textBeforeCursor = ctx.inputValue.slice(0, ctx.cursorPosition);
     const input = normalizeText(textBeforeCursor);
     if (!input) return null;
 
@@ -148,7 +148,7 @@ class LocalPredictiveProvider implements LocalProvider {
             }
           }
 
-          const confidence = matchLen >= 3 ? 85 : matchLen >= 2 ? 80 : 75;
+          const confidence = matchLen >= 3 ? 0.85 : matchLen >= 2 ? 0.8 : 0.75;
 
           if (suggestionText && (!bestMatch || matchLen > bestMatch.matchLen)) {
             bestMatch = { text: suggestionText, confidence, matchLen };
@@ -163,7 +163,7 @@ class LocalPredictiveProvider implements LocalProvider {
 
     if (bestMatch) {
       return {
-        text: bestMatch.text,
+        completion: bestMatch.text,
         confidence: bestMatch.confidence,
         providerId: 'local-predictive',
       };

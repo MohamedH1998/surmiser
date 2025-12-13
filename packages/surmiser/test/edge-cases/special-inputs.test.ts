@@ -29,7 +29,7 @@ describe('Special Inputs Edge Cases', () => {
   it('handles emoji input correctly', async () => {
     const suggestMock = vi
       .fn()
-      .mockResolvedValue({ text: '👋 world', confidence: 100 });
+      .mockResolvedValue({ completion: '👋 world', confidence: 1 });
     options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
 
     detach = attachSurmiser(input, options);
@@ -41,7 +41,7 @@ describe('Special Inputs Edge Cases', () => {
     await new Promise(r => setTimeout(r, 10));
 
     expect(suggestMock).toHaveBeenCalledWith(
-      expect.objectContaining({ text: 'hello 👋' }),
+      expect.objectContaining({ inputValue: 'hello 👋' }),
       expect.anything()
     );
   });
@@ -49,7 +49,7 @@ describe('Special Inputs Edge Cases', () => {
   it('handles pasting large text gracefully', async () => {
     const suggestMock = vi
       .fn()
-      .mockResolvedValue({ text: 'ignored', confidence: 100 });
+      .mockResolvedValue({ completion: 'ignored', confidence: 1 });
     options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
     detach = attachSurmiser(input, options);
 
@@ -74,8 +74,8 @@ describe('Special Inputs Edge Cases', () => {
   it('clears suggestions on select-all and delete', async () => {
     // Mock that returns null if text is empty
     const suggestMock = vi.fn().mockImplementation(async ctx => {
-      if (!ctx.text) return null;
-      return { text: 'suggestion', confidence: 100 };
+      if (!ctx.inputValue) return null;
+      return { completion: 'suggestion', confidence: 1 };
     });
 
     options.providers = [
@@ -94,7 +94,7 @@ describe('Special Inputs Edge Cases', () => {
 
     // Check we got a suggestion
     expect(options.onSuggestion).toHaveBeenCalledWith(
-      expect.objectContaining({ text: 'suggestion' })
+      expect.objectContaining({ completion: 'suggestion' })
     );
 
     // Select all and delete (empty input)
@@ -107,9 +107,10 @@ describe('Special Inputs Edge Cases', () => {
   });
 
   it('handles browser autofill simulation', async () => {
-    const suggestMock = vi
-      .fn()
-      .mockResolvedValue({ text: 'autofilled-completion', confidence: 100 });
+    const suggestMock = vi.fn().mockResolvedValue({
+      completion: 'autofilled-completion',
+      confidence: 1,
+    });
     options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
     detach = attachSurmiser(input, options);
 
@@ -120,7 +121,7 @@ describe('Special Inputs Edge Cases', () => {
     await new Promise(r => setTimeout(r, 10));
 
     expect(suggestMock).toHaveBeenCalledWith(
-      expect.objectContaining({ text: 'myuser' }),
+      expect.objectContaining({ inputValue: 'myuser' }),
       expect.anything()
     );
   });

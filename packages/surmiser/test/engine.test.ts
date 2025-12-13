@@ -12,7 +12,7 @@ describe('SurmiserEngine', () => {
       priority: 100,
       suggest: vi
         .fn()
-        .mockResolvedValue({ text: 'suggestion', confidence: 100 }),
+        .mockResolvedValue({ completion: 'suggestion', confidence: 1 }),
     };
   });
 
@@ -23,7 +23,7 @@ describe('SurmiserEngine', () => {
   it('debounces requests by default 200ms', async () => {
     const engine = new SurmiserEngine({ providers: [mockProvider] });
     const ctx = {
-      text: 'te',
+      inputValue: 'te',
       cursorPosition: 2,
       lastTokens: [],
     } as SuggestionContext;
@@ -48,18 +48,20 @@ describe('SurmiserEngine', () => {
   it('filters suggestions below confidence threshold', async () => {
     const lowConfProvider = {
       ...mockProvider,
-      suggest: vi.fn().mockResolvedValue({ text: 'bad', confidence: 40 }),
+      suggest: vi
+        .fn()
+        .mockResolvedValue({ completion: 'bad', confidence: 0.4 }),
     };
 
     const callback = vi.fn();
     const engine = new SurmiserEngine({
       providers: [lowConfProvider],
-      minConfidence: 70, // Threshold is 70
+      minConfidence: 0.7, // Threshold is 0.7
       onSuggestion: callback,
     });
 
     engine.requestSuggestion({
-      text: 't',
+      inputValue: 't',
       cursorPosition: 1,
       lastTokens: [],
     } as SuggestionContext);
@@ -67,7 +69,7 @@ describe('SurmiserEngine', () => {
 
     expect(lowConfProvider.suggest).toHaveBeenCalled();
     expect(callback).not.toHaveBeenCalledWith(
-      expect.objectContaining({ text: 'bad' })
+      expect.objectContaining({ completion: 'bad' })
     );
     // Depending on implementation, it might call with null or not call at all.
     // Checking current suggestion state:
@@ -90,12 +92,12 @@ describe('SurmiserEngine', () => {
       debounceMs: 0,
     });
     const ctx1 = {
-      text: 'a',
+      inputValue: 'a',
       cursorPosition: 1,
       lastTokens: [],
     } as SuggestionContext;
     const ctx2 = {
-      text: 'ab',
+      inputValue: 'ab',
       cursorPosition: 2,
       lastTokens: [],
     } as SuggestionContext;
@@ -140,13 +142,13 @@ describe('SurmiserEngine', () => {
       ...mockProvider,
       id: 'high',
       priority: 100,
-      suggest: vi.fn().mockResolvedValue({ text: 'high', confidence: 100 }),
+      suggest: vi.fn().mockResolvedValue({ completion: 'high', confidence: 1 }),
     };
 
     const engine = new SurmiserEngine({ providers: [p1, p2], debounceMs: 0 });
 
     engine.requestSuggestion({
-      text: '',
+      inputValue: '',
       cursorPosition: 0,
       lastTokens: [],
     } as SuggestionContext);
@@ -159,6 +161,6 @@ describe('SurmiserEngine', () => {
 
     // Since p2 returned a good suggestion, p1 should NOT be called
     expect(p1.suggest).not.toHaveBeenCalled();
-    expect(engine.getCurrentSuggestion()?.text).toBe('high');
+    expect(engine.getCurrentSuggestion()?.completion).toBe('high');
   });
 });

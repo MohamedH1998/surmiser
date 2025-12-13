@@ -49,7 +49,9 @@ describe('Accessibility', () => {
       {
         id: 'mock',
         priority: 1,
-        suggest: vi.fn().mockResolvedValue({ text: ' world', confidence: 100 }),
+        suggest: vi
+          .fn()
+          .mockResolvedValue({ completion: ' world', confidence: 1 }),
       },
     ];
     detach = attachSurmiser(input, options);
@@ -68,7 +70,9 @@ describe('Accessibility', () => {
       {
         id: 'mock',
         priority: 1,
-        suggest: vi.fn().mockResolvedValue({ text: ' world', confidence: 100 }),
+        suggest: vi
+          .fn()
+          .mockResolvedValue({ completion: ' world', confidence: 1 }),
       },
     ];
     detach = attachSurmiser(input, options);
@@ -94,7 +98,9 @@ describe('Accessibility', () => {
       {
         id: 'mock',
         priority: 1,
-        suggest: vi.fn().mockResolvedValue({ text: ' world', confidence: 100 }),
+        suggest: vi
+          .fn()
+          .mockResolvedValue({ completion: ' world', confidence: 1 }),
       },
     ];
     detach = attachSurmiser(input, options);

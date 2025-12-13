@@ -24,7 +24,7 @@ describe('High Throughput Stress Test', () => {
       const iterStart = performance.now();
 
       const ctx: SuggestionContext = {
-        text: 'hel',
+        inputValue: 'hel',
         cursorPosition: 3,
         lastTokens: [],
       };
@@ -71,7 +71,7 @@ describe('High Throughput Stress Test', () => {
     });
 
     const ctx: SuggestionContext = {
-      text: 'hel',
+      inputValue: 'hel',
       cursorPosition: 3,
       lastTokens: [],
     };

@@ -38,7 +38,7 @@ describe('Remote Provider', () => {
 
   describe('fetchRemoteSuggestion', () => {
     const ctx: SuggestionContext = {
-      text: 'hello',
+      inputValue: 'hello',
       cursorPosition: 5,
       lastTokens: ['hello'],
     };
@@ -67,15 +67,15 @@ describe('Remote Provider', () => {
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
           }),
-          body: expect.stringContaining('"text":"hello"'),
+          body: expect.stringContaining('"inputValue":"hello"'),
           signal: expect.any(AbortSignal),
         })
       );
 
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(callBody.text).toBe('hello');
-      expect(callBody.cursor).toBe(5);
-      expect(callBody.meta).toBeUndefined();
+      expect(callBody.inputValue).toBe('hello');
+      expect(callBody.cursorPosition).toBe(5);
+      expect(callBody.meta).toEqual({});
       expect(callBody.prompt).toBeDefined();
     });
 
@@ -105,13 +105,13 @@ describe('Remote Provider', () => {
             'Content-Type': 'application/json',
             'X-Custom': 'value',
           }),
-          body: expect.stringContaining('"text":"hello"'),
+          body: expect.stringContaining('"inputValue":"hello"'),
         })
       );
 
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(callBody.text).toBe('hello');
-      expect(callBody.cursor).toBe(5);
+      expect(callBody.inputValue).toBe('hello');
+      expect(callBody.cursorPosition).toBe(5);
       expect(callBody.meta).toEqual({ domain: 'email' });
       expect(callBody.prompt).toBeDefined();
     });
@@ -134,7 +134,7 @@ describe('Remote Provider', () => {
       const result = await fetchRemoteSuggestion(config, ctx, signal);
 
       expect(result).toEqual({
-        text: ' world',
+        completion: ' world',
         confidence: 0.9,
         providerId: 'test',
       });
@@ -232,7 +232,7 @@ describe('Remote Provider', () => {
         ok: true,
         json: async () => ({
           suggestion: ' from remote',
-          confidence: 95,
+          confidence: 0.95,
         }),
       });
 
@@ -244,7 +244,7 @@ describe('Remote Provider', () => {
       });
 
       const ctx: SuggestionContext = {
-        text: 'hello',
+        inputValue: 'hello',
         cursorPosition: 5,
         lastTokens: ['hello'],
       };
@@ -254,8 +254,8 @@ describe('Remote Provider', () => {
       await vi.advanceTimersByTimeAsync(1);
 
       expect(onSuggestion).toHaveBeenCalledWith({
-        text: ' from remote',
-        confidence: 95,
+        completion: ' from remote',
+        confidence: 0.95,
         providerId: 'remote',
       });
     });
@@ -271,8 +271,8 @@ describe('Remote Provider', () => {
         id: 'local',
         priority: 10,
         suggest: vi.fn().mockResolvedValue({
-          text: ' from local',
-          confidence: 75,
+          completion: ' from local',
+          confidence: 0.75,
           providerId: 'local',
         }),
       };
@@ -290,7 +290,7 @@ describe('Remote Provider', () => {
       });
 
       const ctx: SuggestionContext = {
-        text: 'hello',
+        inputValue: 'hello',
         cursorPosition: 5,
         lastTokens: ['hello'],
       };
@@ -300,8 +300,8 @@ describe('Remote Provider', () => {
       await vi.advanceTimersByTimeAsync(1);
 
       expect(onSuggestion).toHaveBeenCalledWith({
-        text: ' from local',
-        confidence: 75,
+        completion: ' from local',
+        confidence: 0.75,
         providerId: 'local',
       });
     });
@@ -317,8 +317,8 @@ describe('Remote Provider', () => {
         id: 'local',
         priority: 10,
         suggest: vi.fn().mockResolvedValue({
-          text: ' from local',
-          confidence: 75,
+          completion: ' from local',
+          confidence: 0.75,
           providerId: 'local',
         }),
       };
@@ -327,7 +327,7 @@ describe('Remote Provider', () => {
         ok: true,
         json: async () => ({
           suggestion: ' from remote',
-          confidence: 95,
+          confidence: 0.95,
         }),
       });
 
@@ -339,7 +339,7 @@ describe('Remote Provider', () => {
       });
 
       const ctx: SuggestionContext = {
-        text: 'hello',
+        inputValue: 'hello',
         cursorPosition: 5,
         lastTokens: ['hello'],
       };
@@ -350,12 +350,12 @@ describe('Remote Provider', () => {
 
       // Should use remote (higher priority) not local
       expect(onSuggestion).toHaveBeenCalledWith({
-        text: ' from remote',
-        confidence: 95,
+        completion: ' from remote',
+        confidence: 0.95,
         providerId: 'remote',
       });
 
-      // Local should not even be called since remote returned >= 95 confidence
+      // Local should not even be called since remote returned >= 0.95 confidence
       expect(localProvider.suggest).not.toHaveBeenCalled();
     });
   });

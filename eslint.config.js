@@ -15,6 +15,8 @@ export default [
       '**/.husky/**',
       '**/playwright-report/**',
       '**/test-results/**',
+      '**/next/**',
+      
     ],
   },
 

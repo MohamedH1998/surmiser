@@ -111,7 +111,7 @@ class SurmiserController {
       providers,
       onSuggestion: suggestion => {
         if (!this.isComposing && !this.isDismissed) {
-          this.render(suggestion?.text || null);
+          this.render(suggestion?.completion || null);
         }
         this.options.onSuggestion?.(suggestion);
       },
@@ -167,7 +167,11 @@ class SurmiserController {
     let success = false;
     if (document?.execCommand) {
       try {
-        success = document.execCommand('insertText', false, suggestion.text);
+        success = document.execCommand(
+          'insertText',
+          false,
+          suggestion.completion
+        );
       } catch {
         // Ignore execCommand errors
       }
@@ -175,7 +179,8 @@ class SurmiserController {
 
     if (!success) {
       // Fallback: manual value update
-      const newValue = inputEl.value.slice(0, cursorPos) + suggestion.text;
+      const newValue =
+        inputEl.value.slice(0, cursorPos) + suggestion.completion;
       setInputValue(inputEl, newValue);
       this.lastValue = newValue;
 
@@ -231,7 +236,7 @@ class SurmiserController {
 
     if (fromInput) {
       const currentSuggestionText =
-        this.engine.getCurrentSuggestion()?.text ?? null;
+        this.engine.getCurrentSuggestion()?.completion ?? null;
       let displayText: string | null = null;
 
       if (!this.isDismissed && currentSuggestionText) {

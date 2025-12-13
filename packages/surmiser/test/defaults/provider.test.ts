@@ -5,7 +5,7 @@ describe('localPredictive Provider', () => {
   it('matches prefix from corpus', async () => {
     const provider = localPredictive(['hello world', 'hello universe']);
     const ctx = {
-      text: 'hello ',
+      inputValue: 'hello ',
       cursorPosition: 6,
       lastTokens: ['hello', ''],
     };
@@ -17,13 +17,13 @@ describe('localPredictive Provider', () => {
 
     expect(result).not.toBeNull();
     // Assuming it returns the suffix
-    expect(['world', 'universe']).toContain(result?.text);
+    expect(['world', 'universe']).toContain(result?.completion);
   });
 
   it('handles empty corpus', async () => {
     const provider = localPredictive([]);
     const ctx = {
-      text: 'hello',
+      inputValue: 'hello',
       cursorPosition: 5,
       lastTokens: ['hello'],
     };
@@ -36,7 +36,7 @@ describe('localPredictive Provider', () => {
     const provider = localPredictive(['git commit', 'git push']);
     // Typing "git co"
     const ctx = {
-      text: 'git co',
+      inputValue: 'git co',
       cursorPosition: 6,
       lastTokens: ['git', 'co'],
     };
@@ -45,13 +45,13 @@ describe('localPredictive Provider', () => {
 
     expect(result).not.toBeNull();
     // "git commit" - "git co" = "mmit"
-    expect(result?.text).toBe('mmit');
+    expect(result?.completion).toBe('mmit');
   });
 
   it('returns null if no match found', async () => {
     const provider = localPredictive(['apple', 'banana']);
     const ctx = {
-      text: 'cherr',
+      inputValue: 'cherr',
       cursorPosition: 5,
       lastTokens: ['cherr'],
     };
@@ -64,7 +64,7 @@ describe('localPredictive Provider', () => {
     const provider = localPredictive(['hello, world']);
     // User types "hello,"
     const ctx = {
-      text: 'hello,',
+      inputValue: 'hello,',
       cursorPosition: 6,
       lastTokens: ['hello'],
     };
@@ -73,14 +73,14 @@ describe('localPredictive Provider', () => {
 
     expect(result).not.toBeNull();
     // Should return " world" NOT ", world" (comma already typed)
-    expect(result?.text).toBe(' world');
+    expect(result?.completion).toBe(' world');
   });
 
   it('handles trailing comma with space', async () => {
     const provider = localPredictive(['hello, world']);
     // User types "hello, "
     const ctx = {
-      text: 'hello, ',
+      inputValue: 'hello, ',
       cursorPosition: 7,
       lastTokens: ['hello'],
     };
@@ -89,6 +89,6 @@ describe('localPredictive Provider', () => {
 
     expect(result).not.toBeNull();
     // Should return "world" (comma and space already typed)
-    expect(result?.text).toBe('world');
+    expect(result?.completion).toBe('world');
   });
 });

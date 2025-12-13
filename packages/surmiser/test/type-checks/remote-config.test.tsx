@@ -80,8 +80,8 @@ describe('Remote Config Type Compatibility', () => {
       id: 'local',
       priority: 10,
       suggest: async () => ({
-        text: 'test',
-        confidence: 75,
+        completion: 'test',
+        confidence: 0.75,
         providerId: 'local',
       }),
     };
