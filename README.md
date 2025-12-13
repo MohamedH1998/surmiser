@@ -9,7 +9,7 @@ Add "Smart Compose" style predictive text to any input in minutes. Local-first, 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-![Surmiser Demo](http://momito.co.uk/surmiser)
+[Surmiser Demo](http://momito.co.uk/surmiser)
 
 ## Why Surmiser?
 
@@ -19,9 +19,9 @@ Surmiser is a minimal, composable building block that works with your existing s
 
 - **UI-Agnostic**: Not tied to any framework or component library
 - **Privacy-First by Design**: Local-only predictions, no tracking or telemetry
-- **Production-Ready**: Comprehensive test suite (41 unit + 24 E2E tests), WCAG 2.1 AA compliant
+- **Production-Ready**: Comprehensive test suite
 - **Developer-Friendly**: TypeScript-first with full type safety
-- **Lightweight**: < 10kB gzipped, zero dependencies (React peer-optional)
+- **Lightweight**
 
 ## Features
 
@@ -33,6 +33,7 @@ Surmiser is a minimal, composable building block that works with your existing s
 - **Accessible**: WCAG 2.1 AA compliant with proper ARIA attributes
 - **Cross-Browser**: Tested on Chrome, Firefox, Safari, Edge, and mobile browsers
 - **TypeScript**: Full type definitions included
+
 
 ## Installation
 
