@@ -15,6 +15,7 @@ class SurmiserController {
 
   // State
   private lastValue: string;
+  private lastCursorAtEnd = true; // Track cursor position state to avoid unnecessary renders
   private isComposing = false;
   private isDismissed = false;
   private isAccepting = false;
@@ -38,6 +39,8 @@ class SurmiserController {
     this.boundHandlers = {
       input: this.handleInput.bind(this) as EventListener,
       keydown: this.handleKeyDown.bind(this) as EventListener,
+      keyup: this.handleKeyUp.bind(this) as EventListener,
+      click: this.handleClick.bind(this) as EventListener,
       blur: this.handleBlur.bind(this) as EventListener,
       compositionstart: this.handleCompositionStart.bind(this) as EventListener,
       compositionend: this.handleCompositionEnd.bind(this) as EventListener,
@@ -52,6 +55,8 @@ class SurmiserController {
     // Add event listeners (capture phase where appropriate)
     inputEl.addEventListener('input', this.boundHandlers.input, true);
     inputEl.addEventListener('keydown', this.boundHandlers.keydown, true);
+    inputEl.addEventListener('keyup', this.boundHandlers.keyup, true);
+    inputEl.addEventListener('click', this.boundHandlers.click, true);
     inputEl.addEventListener('blur', this.boundHandlers.blur, true);
     inputEl.addEventListener(
       'compositionstart',
@@ -78,6 +83,8 @@ class SurmiserController {
 
     inputEl.removeEventListener('input', this.boundHandlers.input, true);
     inputEl.removeEventListener('keydown', this.boundHandlers.keydown, true);
+    inputEl.removeEventListener('keyup', this.boundHandlers.keyup, true);
+    inputEl.removeEventListener('click', this.boundHandlers.click, true);
     inputEl.removeEventListener('blur', this.boundHandlers.blur, true);
     inputEl.removeEventListener(
       'compositionstart',
@@ -130,7 +137,7 @@ class SurmiserController {
   private render(suggestionText: string | null): void {
     this.renderer.render(
       this.inputEl.value,
-      this.inputEl.selectionStart || 0,
+      this.getCursorPos(),
       suggestionText
     );
   }
@@ -195,10 +202,58 @@ class SurmiserController {
     const tokenCount = value.toLowerCase().match(/\w+/g)?.length || 0;
     this.engine.markSegmentBoundary(tokenCount);
 
-    // Reset isAccepting after event loop
+    this.lastCursorAtEnd = true;
+
     setTimeout(() => {
       this.isAccepting = false;
     }, 0);
+  }
+
+  private getCursorPos(): number {
+    return this.inputEl.selectionStart ?? 0;
+  }
+
+  private updateGhostForCurrentState(
+    value = this.inputEl.value,
+    cursorPos = this.getCursorPos(),
+    fromInput = false
+  ): void {
+    const isAtEnd = cursorPos === value.length;
+    this.lastCursorAtEnd = isAtEnd;
+
+    // 1) cursor NOT at end → always hide + clear engine suggestion
+    if (!isAtEnd) {
+      this.engine.clearSuggestion();
+      this.renderer.render(value, cursorPos, null);
+      this.lastValue = value;
+      return;
+    }
+
+    if (fromInput) {
+      const currentSuggestionText =
+        this.engine.getCurrentSuggestion()?.text ?? null;
+      let displayText: string | null = null;
+
+      if (!this.isDismissed && currentSuggestionText) {
+        displayText = computeDisplaySuggestion(
+          currentSuggestionText,
+          value,
+          this.lastValue
+        );
+      }
+
+      this.lastValue = value;
+      this.renderer.render(value, cursorPos, displayText);
+
+      this.engine.requestSuggestion(buildContext(value, cursorPos));
+    } else {
+      // navigation/click brought cursor back to end
+      // → treat as fresh: don't reuse old suggestion, just request a new one
+      this.engine.clearSuggestion();
+      this.lastValue = value;
+      this.renderer.render(value, cursorPos, null);
+      this.engine.requestSuggestion(buildContext(value, cursorPos));
+    }
   }
 
   // --- Event Handlers ---
@@ -207,43 +262,29 @@ class SurmiserController {
     if (this.isComposing || this.isAccepting) return;
 
     const value = this.inputEl.value;
-    const cursorPos = this.inputEl.selectionStart || 0;
+    const cursorPos = this.getCursorPos();
 
-    // 1. Check for dismiss gesture (double space)
+    // 1. dismiss gesture (double space)
     if (value.slice(0, cursorPos).endsWith('  ')) {
       this.lastValue = value;
       this.dismiss();
       return;
     }
 
-    // 2. Handle dismissed state reset
-    if (this.isDismissed) {
-      if (this.shouldResetDismissedState(value)) {
-        this.isDismissed = false;
-      }
+    // 2. reset dismissed state if user actually types/backspaces
+    if (this.isDismissed && this.shouldResetDismissedState(value)) {
+      this.isDismissed = false;
     }
 
-    // 3. Handle cleared input
+    // 3. cleared input
     if (value.length === 0) {
       this.clear();
-    }
-
-    const isCursorAtEnd = cursorPos === value.length;
-
-    if (!isCursorAtEnd) {
-      this.engine.clearSuggestion();
-      this.renderer.render(value, cursorPos, null);
       this.lastValue = value;
+      this.lastCursorAtEnd = true;
       return;
     }
-    // 3. Render and Request
-    const currentText = this.engine.getCurrentSuggestion()?.text || null;
-    const displayText = this.isDismissed
-      ? null
-      : computeDisplaySuggestion(currentText, value, this.lastValue);
-    this.lastValue = value;
-    this.renderer.render(value, cursorPos, displayText);
-    this.engine.requestSuggestion(buildContext(value, cursorPos));
+
+    this.updateGhostForCurrentState(value, cursorPos, true);
   }
 
   private shouldResetDismissedState(newValue: string): boolean {
@@ -252,6 +293,28 @@ class SurmiserController {
       return typed.trim() !== '';
     }
     return newValue.length < this.lastValue.length; // Reset on backspace
+  }
+
+  private handleKeyUp(_e: KeyboardEvent): void {
+    if (this.isComposing || this.isAccepting) return;
+
+    const cursorPos = this.getCursorPos();
+    const isAtEnd = cursorPos === this.lastValue.length;
+
+    if (isAtEnd === this.lastCursorAtEnd) return;
+
+    const value = this.inputEl.value;
+    this.updateGhostForCurrentState(value, cursorPos, false);
+  }
+
+  private handleClick(): void {
+    const value = this.inputEl.value;
+    const cursorPos = this.getCursorPos();
+
+    const isAtEnd = cursorPos === value.length;
+    if (isAtEnd === this.lastCursorAtEnd) return;
+
+    this.updateGhostForCurrentState(value, cursorPos);
   }
 
   private handleKeyDown(e: KeyboardEvent): void {

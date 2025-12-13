@@ -1,4 +1,9 @@
-import type { SuggestionContext, Suggestion, SurmiserOptions, SurmiserProvider } from './types';
+import type {
+  SuggestionContext,
+  Suggestion,
+  SurmiserOptions,
+  SurmiserProvider,
+} from './types';
 import { isRemoteProvider, fetchRemoteSuggestion } from './remote-provider';
 
 export class SurmiserEngine {

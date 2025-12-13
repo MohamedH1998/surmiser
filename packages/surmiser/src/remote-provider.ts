@@ -33,7 +33,7 @@ export async function fetchRemoteSuggestion(
         text: ctx.text,
         cursor: ctx.cursorPosition,
         meta: config.meta,
-        prompt: defaultPrompt({input: ctx.text}),
+        prompt: defaultPrompt({ input: ctx.text }),
       }),
       signal: controller.signal,
     });
@@ -50,8 +50,7 @@ export async function fetchRemoteSuggestion(
     if (!data?.suggestion) {
       if (process.env.NODE_ENV !== 'production') {
         console.warn(
-          `Surmiser: remote provider ${config.id} returned no suggestion`,
-          data
+          `Surmiser: remote provider ${config.id} returned no suggestion`
         );
       }
       return null;

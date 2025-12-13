@@ -342,4 +342,206 @@ describe('attachSurmiser', () => {
       detach = attachSurmiser(input, {});
     }).not.toThrow();
   });
+
+  it('hides suggestion when cursor moves away from end via click, requests fresh on return', async () => {
+    const suggestMock = vi
+      .fn()
+      .mockResolvedValue({ text: 'llo world', confidence: 100 });
+    options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
+    detach = attachSurmiser(input, options);
+
+    // Type and get suggestion
+    input.value = 'he';
+    input.selectionStart = 2;
+    input.dispatchEvent(new Event('input'));
+    await new Promise(r => setTimeout(r, 10));
+
+    const callCountAfterInput = suggestMock.mock.calls.length;
+
+    // Click to move cursor to middle - hides suggestion
+    input.selectionStart = 1;
+    input.dispatchEvent(new Event('click', { bubbles: true }));
+
+    // Click back to end - requests fresh suggestion
+    input.selectionStart = 2;
+    input.dispatchEvent(new Event('click', { bubbles: true }));
+    await new Promise(r => setTimeout(r, 10));
+
+    // Provider should have been called again (fresh request)
+    expect(suggestMock.mock.calls.length).toBeGreaterThan(callCountAfterInput);
+  });
+
+  it('hides suggestion when cursor moves via arrow keys, requests fresh on return', async () => {
+    const suggestMock = vi
+      .fn()
+      .mockResolvedValue({ text: 'llo world', confidence: 100 });
+    options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
+    detach = attachSurmiser(input, options);
+
+    // Type and get suggestion
+    input.value = 'he';
+    input.selectionStart = 2;
+    input.dispatchEvent(new Event('input'));
+    await new Promise(r => setTimeout(r, 10));
+
+    const callCountAfterInput = suggestMock.mock.calls.length;
+
+    // Press ArrowLeft to move cursor - hides
+    input.selectionStart = 1;
+    input.dispatchEvent(
+      new KeyboardEvent('keyup', { key: 'ArrowLeft', bubbles: true })
+    );
+
+    // Press ArrowRight back to end - requests fresh
+    input.selectionStart = 2;
+    input.dispatchEvent(
+      new KeyboardEvent('keyup', { key: 'ArrowRight', bubbles: true })
+    );
+    await new Promise(r => setTimeout(r, 10));
+
+    // Provider should have been called again
+    expect(suggestMock.mock.calls.length).toBeGreaterThan(callCountAfterInput);
+  });
+
+  it('hides suggestion when Home key moves cursor, requests fresh when End returns', async () => {
+    const suggestMock = vi
+      .fn()
+      .mockResolvedValue({ text: 'llo world', confidence: 100 });
+    options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
+    detach = attachSurmiser(input, options);
+
+    // Type and get suggestion
+    input.value = 'he';
+    input.selectionStart = 2;
+    input.dispatchEvent(new Event('input'));
+    await new Promise(r => setTimeout(r, 10));
+
+    const callCountAfterInput = suggestMock.mock.calls.length;
+
+    // Press Home to move cursor to start
+    input.selectionStart = 0;
+    input.dispatchEvent(
+      new KeyboardEvent('keyup', { key: 'Home', bubbles: true })
+    );
+
+    // Press End to return to end
+    input.selectionStart = 2;
+    input.dispatchEvent(
+      new KeyboardEvent('keyup', { key: 'End', bubbles: true })
+    );
+    await new Promise(r => setTimeout(r, 10));
+
+    // Provider should have been called again
+    expect(suggestMock.mock.calls.length).toBeGreaterThan(callCountAfterInput);
+  });
+
+  it('does not clear suggestion when cursor at end via input', async () => {
+    options.providers = [
+      {
+        id: 'mock',
+        priority: 1,
+        suggest: vi
+          .fn()
+          .mockResolvedValue({ text: 'llo world', confidence: 100 }),
+      },
+    ];
+    detach = attachSurmiser(input, options);
+
+    // Type and get suggestion
+    input.value = 'he';
+    input.selectionStart = 2;
+    input.dispatchEvent(new Event('input'));
+    await new Promise(r => setTimeout(r, 10));
+
+    // Should have suggestion and not clear it
+    const suggestionCalls = (options.onSuggestion as ReturnType<typeof vi.fn>)
+      .mock.calls;
+    const lastSuggestion = suggestionCalls[suggestionCalls.length - 1][0];
+    expect(lastSuggestion).not.toBeNull();
+  });
+
+  it('clears suggestion when text changes with cursor not at end', async () => {
+    const suggestMock = vi
+      .fn()
+      .mockResolvedValue({ text: 'llo world', confidence: 100 });
+    options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
+    detach = attachSurmiser(input, options);
+
+    // Type and get suggestion
+    input.value = 'he';
+    input.selectionStart = 2;
+    input.dispatchEvent(new Event('input'));
+    await new Promise(r => setTimeout(r, 10));
+
+    // Move cursor to middle
+    input.selectionStart = 1;
+
+    // Type character in middle (changes text)
+    input.value = 'hxe';
+    input.selectionStart = 2;
+    input.dispatchEvent(new Event('input'));
+
+    // Should clear suggestion because text changed while cursor not at end
+    expect(options.onSuggestion).toHaveBeenLastCalledWith(null);
+  });
+
+  it('avoids unnecessary renders when clicking at same position repeatedly', async () => {
+    const suggestMock = vi
+      .fn()
+      .mockResolvedValue({ text: 'llo world', confidence: 100 });
+    const onSuggestionSpy = vi.fn();
+    options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
+    options.onSuggestion = onSuggestionSpy;
+    detach = attachSurmiser(input, options);
+
+    // Type and get suggestion
+    input.value = 'he';
+    input.selectionStart = 2;
+    input.dispatchEvent(new Event('input'));
+    await new Promise(r => setTimeout(r, 10));
+
+    const callCountAfterInput = onSuggestionSpy.mock.calls.length;
+
+    // Click at end multiple times - should NOT trigger new onSuggestion calls
+    input.dispatchEvent(new Event('click', { bubbles: true }));
+    input.dispatchEvent(new Event('click', { bubbles: true }));
+    input.dispatchEvent(new Event('click', { bubbles: true }));
+
+    // onSuggestion should not have been called again (no state change)
+    expect(onSuggestionSpy.mock.calls.length).toBe(callCountAfterInput);
+  });
+
+  it('avoids unnecessary renders when pressing arrows at same position', async () => {
+    const suggestMock = vi
+      .fn()
+      .mockResolvedValue({ text: 'llo world', confidence: 100 });
+    const onSuggestionSpy = vi.fn();
+    options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
+    options.onSuggestion = onSuggestionSpy;
+    detach = attachSurmiser(input, options);
+
+    // Type and get suggestion
+    input.value = 'he';
+    input.selectionStart = 2;
+    input.dispatchEvent(new Event('input'));
+    await new Promise(r => setTimeout(r, 10));
+
+    const suggestCallsAfterInput = suggestMock.mock.calls.length;
+
+    // Press End while already at end - should not trigger state change
+    input.dispatchEvent(
+      new KeyboardEvent('keyup', { key: 'End', bubbles: true })
+    );
+
+    // Provider should NOT have been called (no state change)
+    expect(suggestMock.mock.calls.length).toBe(suggestCallsAfterInput);
+
+    // Press End again - still no state change
+    input.dispatchEvent(
+      new KeyboardEvent('keyup', { key: 'End', bubbles: true })
+    );
+
+    // Provider should still NOT have been called
+    expect(suggestMock.mock.calls.length).toBe(suggestCallsAfterInput);
+  });
 });

@@ -56,8 +56,12 @@ describe('DOM Scenarios Edge Cases', () => {
     input1.dispatchEvent(new Event('input', { bubbles: true }));
     await new Promise(r => setTimeout(r, 10));
 
-    const providers1 = Array.isArray(options1.providers) ? options1.providers : [options1.providers!];
-    const providers2 = Array.isArray(options2.providers) ? options2.providers : [options2.providers!];
+    const providers1 = Array.isArray(options1.providers)
+      ? options1.providers
+      : [options1.providers!];
+    const providers2 = Array.isArray(options2.providers)
+      ? options2.providers
+      : [options2.providers!];
 
     expect((providers1[0] as LocalProvider)?.suggest).toHaveBeenCalled();
     expect((providers2[0] as LocalProvider)?.suggest).not.toHaveBeenCalled();

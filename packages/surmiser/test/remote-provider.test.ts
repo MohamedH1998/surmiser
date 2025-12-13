@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { SurmiserEngine } from '../src/engine';
-import { isRemoteProvider, fetchRemoteSuggestion } from '../src/remote-provider';
+import {
+  isRemoteProvider,
+  fetchRemoteSuggestion,
+} from '../src/remote-provider';
 import type { RemoteProviderConfig, SuggestionContext } from '../src/types';
 
 describe('Remote Provider', () => {
@@ -199,7 +202,11 @@ describe('Remote Provider', () => {
 
       mockFetch.mockRejectedValue(new Error('Aborted'));
 
-      const result = await fetchRemoteSuggestion(config, ctx, controller.signal);
+      const result = await fetchRemoteSuggestion(
+        config,
+        ctx,
+        controller.signal
+      );
 
       expect(result).toBeNull();
     });

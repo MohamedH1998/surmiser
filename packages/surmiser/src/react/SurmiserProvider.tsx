@@ -14,8 +14,10 @@ export function useSurmiserContext() {
   return useContext(SurmiserContext);
 }
 
-interface SurmiserProviderProps
-  extends Pick<SurmiserOptions, 'corpus' | 'providers' | 'debounceMs' | 'minConfidence'> {
+interface SurmiserProviderProps extends Pick<
+  SurmiserOptions,
+  'corpus' | 'providers' | 'debounceMs' | 'minConfidence'
+> {
   children: React.ReactNode;
 }
 
