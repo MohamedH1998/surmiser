@@ -31,7 +31,7 @@ describe('attachSurmiser', () => {
   it('triggers suggestion flow on input', async () => {
     const suggestMock = vi
       .fn()
-      .mockResolvedValue({ text: 'world', confidence: 100 });
+      .mockResolvedValue({ completion: 'world', confidence: 1 });
     options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
 
     detach = attachSurmiser(input, options);
@@ -52,7 +52,9 @@ describe('attachSurmiser', () => {
       {
         id: 'mock',
         priority: 1,
-        suggest: vi.fn().mockResolvedValue({ text: 'leted', confidence: 100 }),
+        suggest: vi
+          .fn()
+          .mockResolvedValue({ completion: 'leted', confidence: 1 }),
       },
     ];
 
@@ -74,7 +76,7 @@ describe('attachSurmiser', () => {
     expect(tabEvent.defaultPrevented).toBe(true);
     // onAccept calls with the suggestion object, so it receives 'leted'
     expect(options.onAccept).toHaveBeenCalledWith(
-      expect.objectContaining({ text: 'leted' })
+      expect.objectContaining({ completion: 'leted' })
     );
     expect(input.value).toBe('completed');
   });
@@ -85,7 +87,7 @@ describe('attachSurmiser', () => {
       {
         id: 'mock',
         priority: 1,
-        suggest: vi.fn().mockResolvedValue({ text: 'xt', confidence: 100 }),
+        suggest: vi.fn().mockResolvedValue({ completion: 'xt', confidence: 1 }),
       },
     ];
     detach = attachSurmiser(input, options);
@@ -111,7 +113,9 @@ describe('attachSurmiser', () => {
       {
         id: 'mock',
         priority: 1,
-        suggest: vi.fn().mockResolvedValue({ text: 'next', confidence: 100 }),
+        suggest: vi
+          .fn()
+          .mockResolvedValue({ completion: 'next', confidence: 1 }),
       },
     ];
     detach = attachSurmiser(input, options);
@@ -139,7 +143,7 @@ describe('attachSurmiser', () => {
         priority: 1,
         suggest: vi
           .fn()
-          .mockResolvedValue({ text: 'dismiss-me', confidence: 100 }),
+          .mockResolvedValue({ completion: 'dismiss-me', confidence: 1 }),
       },
     ];
     detach = attachSurmiser(input, options);
@@ -150,7 +154,7 @@ describe('attachSurmiser', () => {
 
     // Should have suggestion
     expect(options.onSuggestion).toHaveBeenCalledWith(
-      expect.objectContaining({ text: 'dismiss-me' })
+      expect.objectContaining({ completion: 'dismiss-me' })
     );
 
     // Press Escape
@@ -169,7 +173,7 @@ describe('attachSurmiser', () => {
         priority: 1,
         suggest: vi
           .fn()
-          .mockResolvedValue({ text: 'blur-test', confidence: 100 }),
+          .mockResolvedValue({ completion: 'blur-test', confidence: 1 }),
       },
     ];
     detach = attachSurmiser(input, options);
@@ -225,7 +229,7 @@ describe('attachSurmiser', () => {
 
     expect(corpusOptions.onSuggestion).toHaveBeenCalledWith(
       expect.objectContaining({
-        text: 'so much',
+        completion: 'so much',
         confidence: expect.any(Number),
       })
     );
@@ -254,7 +258,7 @@ describe('attachSurmiser', () => {
   });
 
   it('handles multiple rapid inputs without losing suggestions', async () => {
-    vi.fn().mockResolvedValue({ text: ' you so much', confidence: 95 });
+    vi.fn().mockResolvedValue({ completion: ' you so much', confidence: 0.95 });
 
     const corpusOptions: SurmiserOptions = {
       corpus: ['thank you so much'],
@@ -291,7 +295,7 @@ describe('attachSurmiser', () => {
       .calls;
     const lastCall = calls[calls.length - 1][0];
     expect(lastCall).not.toBeNull();
-    expect(lastCall?.text).toBeTruthy();
+    expect(lastCall?.completion).toBeTruthy();
   });
 
   it('works with default options', async () => {
@@ -307,7 +311,7 @@ describe('attachSurmiser', () => {
 
     expect(onSuggestion).toHaveBeenCalledWith(
       expect.objectContaining({
-        text: expect.any(String),
+        completion: expect.any(String),
         confidence: expect.any(Number),
       })
     );
@@ -346,7 +350,7 @@ describe('attachSurmiser', () => {
   it('hides suggestion when cursor moves away from end via click, requests fresh on return', async () => {
     const suggestMock = vi
       .fn()
-      .mockResolvedValue({ text: 'llo world', confidence: 100 });
+      .mockResolvedValue({ completion: 'llo world', confidence: 1 });
     options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
     detach = attachSurmiser(input, options);
 
@@ -374,7 +378,7 @@ describe('attachSurmiser', () => {
   it('hides suggestion when cursor moves via arrow keys, requests fresh on return', async () => {
     const suggestMock = vi
       .fn()
-      .mockResolvedValue({ text: 'llo world', confidence: 100 });
+      .mockResolvedValue({ completion: 'llo world', confidence: 1 });
     options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
     detach = attachSurmiser(input, options);
 
@@ -406,7 +410,7 @@ describe('attachSurmiser', () => {
   it('hides suggestion when Home key moves cursor, requests fresh when End returns', async () => {
     const suggestMock = vi
       .fn()
-      .mockResolvedValue({ text: 'llo world', confidence: 100 });
+      .mockResolvedValue({ completion: 'llo world', confidence: 1 });
     options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
     detach = attachSurmiser(input, options);
 
@@ -442,7 +446,7 @@ describe('attachSurmiser', () => {
         priority: 1,
         suggest: vi
           .fn()
-          .mockResolvedValue({ text: 'llo world', confidence: 100 }),
+          .mockResolvedValue({ completion: 'llo world', confidence: 1 }),
       },
     ];
     detach = attachSurmiser(input, options);
@@ -463,7 +467,7 @@ describe('attachSurmiser', () => {
   it('clears suggestion when text changes with cursor not at end', async () => {
     const suggestMock = vi
       .fn()
-      .mockResolvedValue({ text: 'llo world', confidence: 100 });
+      .mockResolvedValue({ completion: 'llo world', confidence: 1 });
     options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
     detach = attachSurmiser(input, options);
 
@@ -488,7 +492,7 @@ describe('attachSurmiser', () => {
   it('avoids unnecessary renders when clicking at same position repeatedly', async () => {
     const suggestMock = vi
       .fn()
-      .mockResolvedValue({ text: 'llo world', confidence: 100 });
+      .mockResolvedValue({ completion: 'llo world', confidence: 1 });
     const onSuggestionSpy = vi.fn();
     options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
     options.onSuggestion = onSuggestionSpy;
@@ -514,7 +518,7 @@ describe('attachSurmiser', () => {
   it('avoids unnecessary renders when pressing arrows at same position', async () => {
     const suggestMock = vi
       .fn()
-      .mockResolvedValue({ text: 'llo world', confidence: 100 });
+      .mockResolvedValue({ completion: 'llo world', confidence: 1 });
     const onSuggestionSpy = vi.fn();
     options.providers = [{ id: 'mock', priority: 1, suggest: suggestMock }];
     options.onSuggestion = onSuggestionSpy;

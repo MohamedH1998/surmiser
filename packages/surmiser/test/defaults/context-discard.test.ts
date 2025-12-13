@@ -24,7 +24,7 @@ describe('Context Discard Protection', () => {
     const result = await provider.suggest(ctx, new AbortController().signal);
 
     expect(result).not.toBeNull();
-    expect(result?.text).toBe('ke care');
+    expect(result?.completion).toBe('ke care');
   });
 
   it('should NOT suggest for "long app" (multi-word segment)', async () => {
@@ -41,7 +41,7 @@ describe('Context Discard Protection', () => {
     const result = await provider.suggest(ctx, new AbortController().signal);
 
     expect(result).not.toBeNull();
-    expect(result?.text).toBe('preciate it');
+    expect(result?.completion).toBe('preciate it');
   });
 
   it('should NOT suggest for "some phrase i"', async () => {

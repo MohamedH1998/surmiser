@@ -61,7 +61,7 @@ describe('Large Corpus Stress Test', () => {
     });
 
     const ctx: SuggestionContext = {
-      text: 'lorem ip',
+      inputValue: 'lorem ip',
       cursorPosition: 8,
       lastTokens: [],
     };

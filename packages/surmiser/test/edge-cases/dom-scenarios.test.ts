@@ -32,7 +32,7 @@ describe('DOM Scenarios Edge Cases', () => {
         priority: 1,
         suggest: vi
           .fn()
-          .mockResolvedValue({ text: `suggestion-${id}`, confidence: 100 }),
+          .mockResolvedValue({ completion: `suggestion-${id}`, confidence: 1 }),
       },
     ],
     onSuggestion: vi.fn(),

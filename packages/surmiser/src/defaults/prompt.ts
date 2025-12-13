@@ -1,17 +1,26 @@
 export const defaultPrompt = ({ input }: { input: string }): string => `
 Task:
-Predict the next minimal linguistic unit licensed by the current syntactic, semantic, and discourse context.
+Given the user's input, either:
+- suggest a continuation of the next typical linguistic unit or units.
+- return null if no natural continuation comes to mind.
+- return confidence score between 0 and 1.
 
-Guidelines:
-- Continue the phrase or clause currently in progress.
-- Maintain all morphosyntactic features (tense, aspect, mood, number).
-- Preserve register (formal/informal) and persona.
-- Respect idiomaticity and collocation probabilities.
-- Output ONLY the predicted suffix, not the full completion.
-- If multiple continuations are possible, return the most typical one.
-- If the utterance is syntactically complete, return "".
+Examples:
+Input:I am writ
+Output: ing to inform you
 
-User text:
-${input}
+Input:The biggest count
+Output: try in the world is Russia
 
+Input: The meeting is
+Output: cheduled for tomorrow
+
+Input:Best rega
+Output: rds,
+
+Input:See you then.
+Output: null
+
+Input:${input}
+Output:
 `;

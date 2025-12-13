@@ -33,7 +33,7 @@ yarn add surmiser
 ### React (Recommended)
 
 ```tsx
-import { SurmiserInput } from "surmiser/react";
+import { SurmiserInput } from 'surmiser/react';
 
 // Standalone (no provider needed)
 function App() {
@@ -41,7 +41,7 @@ function App() {
 }
 
 // Or with Provider for shared configuration
-import { SurmiserProvider, SurmiserInput } from "surmiser/react";
+import { SurmiserProvider, SurmiserInput } from 'surmiser/react';
 
 function App() {
   return (
@@ -55,9 +55,9 @@ function App() {
 ### Vanilla JavaScript
 
 ```javascript
-import { attachSurmiser } from "surmiser";
+import { attachSurmiser } from 'surmiser';
 
-const input = document.getElementById("my-input");
+const input = document.getElementById('my-input');
 attachSurmiser(input);
 ```
 
@@ -79,16 +79,16 @@ Attaches Surmiser autocomplete functionality to an HTML input element.
 **Example:**
 
 ```javascript
-import { attachSurmiser } from "surmiser";
+import { attachSurmiser } from 'surmiser';
 
-const input = document.getElementById("email-input");
+const input = document.getElementById('email-input');
 
 const detach = attachSurmiser(input, {
-  corpus: ["hello@example.com", "support@company.com"],
+  corpus: ['hello@example.com', 'support@company.com'],
   debounceMs: 150,
-  minConfidence: 75,
-  onAccept: (suggestion) => {
-    console.log("Accepted:", suggestion);
+  minConfidence: 0.75,
+  onAccept: suggestion => {
+    console.log('Accepted:', suggestion);
   },
 });
 
@@ -110,10 +110,10 @@ Creates a local predictive provider from an array of strings.
 **Example:**
 
 ```javascript
-import { attachSurmiser, localPredictive } from "surmiser";
+import { attachSurmiser, localPredictive } from 'surmiser';
 
-const gitCommands = ["git commit -m", "git push origin main", "git pull"];
-const commonPhrases = ["thanks", "sounds good", "let me know"];
+const gitCommands = ['git commit -m', 'git push origin main', 'git pull'];
+const commonPhrases = ['thanks', 'sounds good', 'let me know'];
 
 attachSurmiser(input, {
   providers: [
@@ -135,25 +135,26 @@ Optional context provider that configures Surmiser for all child components.
 
 **Props:**
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `corpus` | `string[]` | Default corpus | Array of phrases to suggest |
-| `provider` | `Provider` | Default provider | Custom provider instance |
-| `debounceMs` | `number` | `200` | Debounce delay for suggestions (ms) |
-| `minConfidence` | `number` | `70` | Minimum confidence threshold (0-100) |
-| `children` | `ReactNode` | - | Child components |
+| Prop            | Type        | Default          | Description                         |
+| --------------- | ----------- | ---------------- | ----------------------------------- |
+| `corpus`        | `string[]`  | Default corpus   | Array of phrases to suggest         |
+| `provider`      | `Provider`  | Default provider | Custom provider instance            |
+| `debounceMs`    | `number`    | `200`            | Debounce delay for suggestions (ms) |
+| `minConfidence` | `number`    | `0.7`            | Minimum confidence threshold (0-1)  |
+| `children`      | `ReactNode` | -                | Child components                    |
 
 **Rules:**
+
 - `corpus` and `provider` are mutually exclusive (will throw error if both specified)
 - Children can add to providers with `corpus` (additive) or replace with `providers` (full override)
 
 **Example:**
 
 ```tsx
-import { SurmiserProvider } from "surmiser/react";
+import { SurmiserProvider } from 'surmiser/react';
 
 function App() {
-  const phrases = ["feature request", "bug report", "deploy to prod"];
+  const phrases = ['feature request', 'bug report', 'deploy to prod'];
 
   return (
     <SurmiserProvider corpus={phrases} debounceMs={150}>
@@ -171,42 +172,42 @@ Drop-in input component with Surmiser functionality built-in. Works standalone o
 
 All standard HTML input props, plus:
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `corpus` | `string[]` | Context corpus | Additional phrases (additive) |
-| `providers` | `Provider[]` | Context providers | Replace all providers |
-| `debounceMs` | `number` | `200` | Override context debounce |
-| `minConfidence` | `number` | `70` | Override context confidence |
-| `onAccept` | `(suggestion: string) => void` | - | Callback when suggestion accepted |
-| `onDismiss` | `() => void` | - | Callback when suggestion dismissed |
+| Prop            | Type                           | Default           | Description                        |
+| --------------- | ------------------------------ | ----------------- | ---------------------------------- |
+| `corpus`        | `string[]`                     | Context corpus    | Additional phrases (additive)      |
+| `providers`     | `Provider[]`                   | Context providers | Replace all providers              |
+| `debounceMs`    | `number`                       | `200`             | Override context debounce          |
+| `minConfidence` | `number`                       | `0.7`             | Override context confidence        |
+| `onAccept`      | `(suggestion: string) => void` | -                 | Callback when suggestion accepted  |
+| `onDismiss`     | `() => void`                   | -                 | Callback when suggestion dismissed |
 
 **Example:**
 
 ```tsx
-import { SurmiserInput } from "surmiser/react";
+import { SurmiserInput } from 'surmiser/react';
 
 function EmailForm() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState('');
 
   return (
     // Works standalone without a Provider
     <SurmiserInput
       type="email"
       value={email}
-      onChange={(e) => setEmail(e.target.value)}
+      onChange={e => setEmail(e.target.value)}
       placeholder="Enter email..."
-      corpus={["hello@example.com", "support@company.com"]}
-      onAccept={(suggestion) => console.log("Accepted:", suggestion)}
+      corpus={['hello@example.com', 'support@company.com']}
+      onAccept={suggestion => console.log('Accepted:', suggestion)}
     />
   );
 }
 
 // Or use with Provider for shared configuration
-import { SurmiserProvider, SurmiserInput } from "surmiser/react";
+import { SurmiserProvider, SurmiserInput } from 'surmiser/react';
 
 function EmailForm() {
   return (
-    <SurmiserProvider corpus={["global", "phrases"]}>
+    <SurmiserProvider corpus={['global', 'phrases']}>
       <SurmiserInput placeholder="Enter email..." />
     </SurmiserProvider>
   );
@@ -234,25 +235,25 @@ Hook to integrate Surmiser with custom input components (e.g., Shadcn, MUI, Chak
 **Example:**
 
 ```tsx
-import { useSurmiser } from "surmiser/react";
-import { Input } from "@/components/ui/input"; // Your custom component
+import { useSurmiser } from 'surmiser/react';
+import { Input } from '@/components/ui/input'; // Your custom component
 
 // Standalone usage (no provider needed)
 function CustomInput() {
   const { attachRef, suggestion, isVisible } = useSurmiser({
-    corpus: ["git commit", "git push", "git pull"],
-    onAccept: (s) => console.log("Accepted:", s),
+    corpus: ['git commit', 'git push', 'git pull'],
+    onAccept: s => console.log('Accepted:', s),
   });
 
   return <Input ref={attachRef} placeholder="Type a command..." />;
 }
 
 // Or use within a Provider to inherit shared config
-import { SurmiserProvider } from "surmiser/react";
+import { SurmiserProvider } from 'surmiser/react';
 
 function App() {
   return (
-    <SurmiserProvider corpus={["shared", "phrases"]}>
+    <SurmiserProvider corpus={['shared', 'phrases']}>
       <CustomInput />
     </SurmiserProvider>
   );
@@ -264,16 +265,18 @@ function App() {
 The `corpus` option behaves differently depending on whether you're using a Provider:
 
 **Standalone (No Provider):**
+
 - `corpus` **replaces** the default corpus
 
 ```tsx
 // Uses ONLY gitCommands (default corpus is replaced)
 const { attachRef } = useSurmiser({
-  corpus: ['git commit', 'git push']
+  corpus: ['git commit', 'git push'],
 });
 ```
 
 **With Provider:**
+
 - `corpus` is **additive** (adds to Provider's corpus)
 
 ```tsx
@@ -297,14 +300,14 @@ const { attachRef } = useSurmiser({
 
 Options for `attachSurmiser` and React hooks.
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `corpus` | `string[]` | `undefined` | Simple array of phrases to suggest |
-| `providers` | `Provider[]` | `undefined` | Advanced: multiple providers with priority |
-| `debounceMs` | `number` | `200` | Delay before showing suggestions (ms) |
-| `minConfidence` | `number` | `70` | Minimum confidence score (0-100) to show suggestion |
-| `onAccept` | `(suggestion: string) => void` | `undefined` | Callback when user accepts suggestion |
-| `onDismiss` | `() => void` | `undefined` | Callback when user dismisses suggestion |
+| Option          | Type                           | Default     | Description                                       |
+| --------------- | ------------------------------ | ----------- | ------------------------------------------------- |
+| `corpus`        | `string[]`                     | `undefined` | Simple array of phrases to suggest                |
+| `providers`     | `Provider[]`                   | `undefined` | Advanced: multiple providers with priority        |
+| `debounceMs`    | `number`                       | `200`       | Delay before showing suggestions (ms)             |
+| `minConfidence` | `number`                       | `0.7`       | Minimum confidence score (0-1) to show suggestion |
+| `onAccept`      | `(suggestion: string) => void` | `undefined` | Callback when user accepts suggestion             |
+| `onDismiss`     | `() => void`                   | `undefined` | Callback when user dismisses suggestion           |
 
 **Important:** `corpus` and `providers` are mutually exclusive.
 
@@ -330,36 +333,39 @@ Providers generate suggestions. Surmiser includes a default local provider, but 
 ```typescript
 interface Provider {
   priority: number; // Higher = checked first (default: 10)
-  suggest: (
-    input: string,
-    signal: AbortSignal
-  ) => Promise<Suggestion | null>;
+  suggest: (input: string, signal: AbortSignal) => Promise<Suggestion | null>;
 }
 
 interface Suggestion {
   text: string; // Full suggestion text
-  confidence: number; // 0-100 score
+  confidence: number; // 0-1 score
 }
 ```
 
 ### Creating a Custom Provider
 
 ```typescript
-import type { Provider, Suggestion } from "surmiser";
+import type { Provider, Suggestion } from 'surmiser';
 
 const apiProvider: Provider = {
   priority: 15, // Higher priority than default (10)
-  
-  async suggest(input: string, signal: AbortSignal): Promise<Suggestion | null> {
+
+  async suggest(
+    input: string,
+    signal: AbortSignal
+  ): Promise<Suggestion | null> {
     try {
-      const response = await fetch(`/api/suggest?q=${encodeURIComponent(input)}`, {
-        signal, // Respect cancellation
-      });
-      
+      const response = await fetch(
+        `/api/suggest?q=${encodeURIComponent(input)}`,
+        {
+          signal, // Respect cancellation
+        }
+      );
+
       if (!response.ok) return null;
-      
+
       const data = await response.json();
-      
+
       return {
         text: data.suggestion,
         confidence: data.confidence,
@@ -381,10 +387,10 @@ attachSurmiser(input, {
 ### Multiple Corpora with Different Priorities
 
 ```typescript
-import { attachSurmiser, localPredictive } from "surmiser";
+import { attachSurmiser, localPredictive } from 'surmiser';
 
-const highPriorityPhrases = ["urgent", "critical", "immediate"];
-const normalPhrases = ["hello", "thanks", "please"];
+const highPriorityPhrases = ['urgent', 'critical', 'immediate'];
+const normalPhrases = ['hello', 'thanks', 'please'];
 
 attachSurmiser(input, {
   providers: [
@@ -404,8 +410,8 @@ Called when the user accepts a suggestion via Tab, Arrow Right, or swipe gesture
 
 ```typescript
 attachSurmiser(input, {
-  onAccept: (suggestion) => {
-    console.log("User accepted:", suggestion);
+  onAccept: suggestion => {
+    console.log('User accepted:', suggestion);
     // Analytics tracking, logging, etc.
   },
 });
@@ -418,7 +424,7 @@ Called when the user explicitly dismisses a suggestion via Escape or double-spac
 ```typescript
 attachSurmiser(input, {
   onDismiss: () => {
-    console.log("User dismissed suggestion");
+    console.log('User dismissed suggestion');
     // Track dismissal rate, adjust confidence threshold, etc.
   },
 });
@@ -437,7 +443,7 @@ import type {
   AttachOptions,
   DetachFunction,
   UseSurmiserOptions,
-} from "surmiser";
+} from 'surmiser';
 ```
 
 ### Core Types
@@ -452,7 +458,7 @@ interface Provider {
 // Suggestion from a provider
 interface Suggestion {
   text: string;
-  confidence: number; // 0-100
+  confidence: number; // 0-1
 }
 
 // Options for attachSurmiser
@@ -480,20 +486,20 @@ interface UseSurmiserOptions extends AttachOptions {
 
 ### Desktop
 
-| Key | Action |
-|-----|--------|
-| **Tab** | Accept suggestion |
-| **Arrow Right** | Accept suggestion (at end of input) |
-| **Escape** | Dismiss suggestion |
-| **Double Space** | Dismiss suggestion |
+| Key              | Action                              |
+| ---------------- | ----------------------------------- |
+| **Tab**          | Accept suggestion                   |
+| **Arrow Right**  | Accept suggestion (at end of input) |
+| **Escape**       | Dismiss suggestion                  |
+| **Double Space** | Dismiss suggestion                  |
 
 ### Mobile
 
-| Gesture | Action |
-|---------|--------|
-| **Swipe Right** | Accept suggestion |
-| **Tap Ghost Text** | Accept suggestion |
-| **Double Space** | Dismiss suggestion |
+| Gesture            | Action             |
+| ------------------ | ------------------ |
+| **Swipe Right**    | Accept suggestion  |
+| **Tap Ghost Text** | Accept suggestion  |
+| **Double Space**   | Dismiss suggestion |
 
 All interactions are accessible and WCAG 2.1 AA compliant.
 
@@ -504,6 +510,7 @@ All interactions are accessible and WCAG 2.1 AA compliant.
 ### Ghost text not appearing
 
 **Check:**
+
 1. Is the input element an `<input type="text">` or `<textarea>`?
 2. Is the input focused and does it have text?
 3. Are suggestions being generated? Check `onAccept` callback.
@@ -513,21 +520,22 @@ All interactions are accessible and WCAG 2.1 AA compliant.
 // Debug mode
 attachSurmiser(input, {
   minConfidence: 0, // Show all suggestions
-  onAccept: (s) => console.log("Accepted:", s),
+  onAccept: s => console.log('Accepted:', s),
 });
 ```
 
 ### Suggestions not relevant
 
 **Solutions:**
+
 1. Use a custom corpus matching your use case
 2. Adjust confidence threshold
 3. Implement a custom provider with better matching logic
 
 ```typescript
 const domainSpecific = [
-  "Your domain-specific phrases here",
-  "More relevant suggestions",
+  'Your domain-specific phrases here',
+  'More relevant suggestions',
 ];
 
 attachSurmiser(input, { corpus: domainSpecific });
@@ -536,6 +544,7 @@ attachSurmiser(input, { corpus: domainSpecific });
 ### Performance issues with large corpus
 
 **Solutions:**
+
 1. Reduce corpus size (< 10,000 items recommended)
 2. Increase debounce delay
 3. Split into multiple providers by priority
@@ -555,12 +564,12 @@ attachSurmiser(input, {
 ```tsx
 // ✅ Correct
 const { attachRef } = useSurmiser();
-<Input ref={attachRef} />
+<Input ref={attachRef} />;
 
 // ❌ Incorrect
 const inputRef = useRef<HTMLInputElement>(null);
 const { attachRef } = useSurmiser();
-<Input ref={inputRef} /> // Won't work - attachRef must be used directly
+<Input ref={inputRef} />; // Won't work - attachRef must be used directly
 ```
 
 ### React StrictMode double-mounting
@@ -590,8 +599,10 @@ Surmiser uses inline styles for ghost text positioning. If you have strict CSP:
 
 ```html
 <!-- Add to CSP header or meta tag -->
-<meta http-equiv="Content-Security-Policy" 
-      content="style-src 'self' 'unsafe-inline';">
+<meta
+  http-equiv="Content-Security-Policy"
+  content="style-src 'self' 'unsafe-inline';"
+/>
 ```
 
 Or use nonces:
@@ -605,14 +616,14 @@ Or use nonces:
 
 ## Browser Support
 
-| Browser | Version | Status |
-|---------|---------|--------|
-| Chrome | Latest | ✅ Fully Supported |
-| Firefox | Latest | ✅ Fully Supported |
-| Safari | Latest | ✅ Fully Supported |
-| Edge | Latest | ✅ Fully Supported |
-| Chrome Mobile | Latest | ✅ Fully Supported |
-| Safari Mobile | Latest | ✅ Fully Supported |
+| Browser       | Version | Status             |
+| ------------- | ------- | ------------------ |
+| Chrome        | Latest  | ✅ Fully Supported |
+| Firefox       | Latest  | ✅ Fully Supported |
+| Safari        | Latest  | ✅ Fully Supported |
+| Edge          | Latest  | ✅ Fully Supported |
+| Chrome Mobile | Latest  | ✅ Fully Supported |
+| Safari Mobile | Latest  | ✅ Fully Supported |
 
 See [BROWSER_SUPPORT.md](../BROWSER_SUPPORT.md) for detailed compatibility information.
 
@@ -624,9 +635,9 @@ See [BROWSER_SUPPORT.md](../BROWSER_SUPPORT.md) for detailed compatibility infor
 
 ```tsx
 const emailPhrases = [
-  "hello@example.com",
-  "support@company.com",
-  "info@website.com",
+  'hello@example.com',
+  'support@company.com',
+  'info@website.com',
 ];
 
 <SurmiserInput
@@ -640,9 +651,9 @@ const emailPhrases = [
 
 ```tsx
 const chatPhrases = [
-  "Thanks for the update!",
-  "Sounds good to me.",
-  "Let me know if you need anything.",
+  'Thanks for the update!',
+  'Sounds good to me.',
+  'Let me know if you need anything.',
   "I'll take a look at this.",
 ];
 
@@ -655,32 +666,108 @@ const chatPhrases = [
 
 ```tsx
 const codePhrases = [
-  "TODO: ",
-  "FIXME: ",
-  "NOTE: ",
-  "HACK: ",
-  "// eslint-disable-next-line",
+  'TODO: ',
+  'FIXME: ',
+  'NOTE: ',
+  'HACK: ',
+  '// eslint-disable-next-line',
 ];
 
 <SurmiserInput corpus={codePhrases} />;
 ```
 
-### API-Based Suggestions
+### Remote Provider (API-Based Suggestions)
+
+Surmiser has **built-in remote provider support** - just pass an `endpoint` instead of a `suggest` function!
+
+**Simple Remote Provider:**
 
 ```tsx
-const apiProvider: Provider = {
-  priority: 15,
-  async suggest(input, signal) {
-    const res = await fetch(`/api/suggest?q=${input}`, { signal });
-    const data = await res.json();
-    return { text: data.text, confidence: data.score };
-  },
-};
+import { SurmiserProvider } from 'surmiser/react';
 
-<SurmiserProvider provider={apiProvider}>
+<SurmiserProvider
+  providers={[
+    {
+      id: 'my-api',
+      endpoint: '/api/suggest', // Just add endpoint!
+      priority: 15,
+    },
+  ]}
+>
   <Input />
 </SurmiserProvider>;
 ```
+
+**With Headers & Metadata:**
+
+```tsx
+<SurmiserProvider
+  providers={[
+    {
+      id: 'my-api',
+      endpoint: '/api/suggest',
+      priority: 15,
+      timeoutMs: 3000,
+      meta: { domain: 'email' },
+    },
+  ]}
+>
+  <Input />
+</SurmiserProvider>
+```
+
+**Mix Local + Remote with Priority:**
+
+```tsx
+import { localPredictive } from 'surmiser';
+
+<SurmiserProvider
+  providers={[
+    // Remote AI gets first try (highest priority)
+    {
+      id: 'gpt',
+      endpoint: '/api/openai-suggest',
+      priority: 100,
+    },
+    // Local fallback (lower priority)
+    localPredictive(['common', 'phrases'], {
+      id: 'local',
+      priority: 10,
+    }),
+  ]}
+>
+  <Input />
+</SurmiserProvider>;
+```
+
+**API Contract:**
+
+Your endpoint receives POST:
+
+```json
+{
+  "inputValue": "hello",
+  "cursorPosition": 5,
+  "meta": {},
+  "prompt": "..."
+}
+```
+
+Must respond:
+
+```json
+{
+  "suggestion": " world",
+  "confidence": 0.9
+}
+```
+
+The engine automatically:
+
+- Detects remote vs local providers
+- Sorts by priority (high to low)
+- Tries each until confidence threshold met
+- Falls back if remote fails
 
 ---
 
@@ -694,4 +781,3 @@ const apiProvider: Provider = {
 ---
 
 **Questions?** Open an issue on [GitHub](https://github.com/MohamedH1998/surmiser/issues) or check existing discussions.
-

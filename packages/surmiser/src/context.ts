@@ -8,7 +8,7 @@ export function buildContext(
   const tokens = beforeCursor.toLowerCase().match(/\w+/g) || [];
 
   return {
-    text: value,
+    inputValue: value,
     cursorPosition: cursorPos,
     lastTokens: tokens.slice(-3),
   };

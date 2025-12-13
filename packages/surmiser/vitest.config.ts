@@ -6,7 +6,7 @@ export default defineConfig({
     environment: 'happy-dom',
     globals: true,
     setupFiles: [path.resolve(__dirname, 'test/test-utils.ts')],
-    include: ['test/**/*.test.{ts,tsx}', 'test/**/*.spec.{ts,tsx}'],
+    include: ['test/**/*.test.{ts,tsx}'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

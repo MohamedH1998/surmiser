@@ -30,10 +30,10 @@ export async function fetchRemoteSuggestion(
         ...(config.headers ?? {}),
       },
       body: JSON.stringify({
-        text: ctx.text,
-        cursor: ctx.cursorPosition,
-        meta: config.meta,
-        prompt: defaultPrompt({ input: ctx.text }),
+        inputValue: ctx.inputValue,
+        cursorPosition: ctx.cursorPosition,
+        meta: config.meta ?? {},
+        prompt: defaultPrompt({ input: ctx.inputValue }),
       }),
       signal: controller.signal,
     });
@@ -57,7 +57,7 @@ export async function fetchRemoteSuggestion(
     }
 
     return {
-      text: data.suggestion,
+      completion: data.suggestion ?? '',
       confidence: data.confidence,
       providerId: config.id,
     };

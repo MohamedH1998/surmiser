@@ -21,6 +21,7 @@ Surmiser is a minimal, composable building block that works with your existing s
 ## Features
 
 - **Batteries Included**: Comes with a default corpus of common phrases
+- **Remote Providers**: Built-in support for AI APIs (OpenAI, Anthropic, etc.) with automatic fallback
 - **UI Agnostic**: Works with raw HTML, React, Shadcn, MUI, or any framework
 - **Privacy First**: Local predictive engine by default - no data leaves the client
 - **Mobile Ready**: Swipe right to accept, optimized for touch
@@ -44,7 +45,7 @@ Surmiser provides a drop-in component and a hook for maximum flexibility. **No p
 **The Easy Way (`SurmiserInput`)**
 
 ```tsx
-import { SurmiserInput } from "surmiser/react";
+import { SurmiserInput } from 'surmiser/react';
 
 function App() {
   return <SurmiserInput placeholder="Type something..." />;
@@ -56,8 +57,8 @@ function App() {
 Integrates with existing UI libraries like Shadcn, MUI, or Chakra.
 
 ```tsx
-import { useSurmiser } from "surmiser/react";
-import { Input } from "@/components/ui/input"; // Your custom component
+import { useSurmiser } from 'surmiser/react';
+import { Input } from '@/components/ui/input'; // Your custom component
 
 function MyCustomInput() {
   // 1. Get the attachRef
@@ -73,11 +74,11 @@ function MyCustomInput() {
 Want to share settings across multiple inputs? Use the optional `<SurmiserProvider>`:
 
 ```tsx
-import { SurmiserProvider, SurmiserInput } from "surmiser/react";
+import { SurmiserProvider, SurmiserInput } from 'surmiser/react';
 
 function App() {
   return (
-    <SurmiserProvider corpus={["shared", "phrases"]}>
+    <SurmiserProvider corpus={['shared', 'phrases']}>
       <SurmiserInput placeholder="Input 1..." />
       <SurmiserInput placeholder="Input 2..." />
     </SurmiserProvider>
@@ -90,8 +91,56 @@ function App() {
 Works with any standard HTML input element.
 
 ```js
-import { attachSurmiser } from "surmiser";
+import { attachSurmiser } from 'surmiser';
 
-const input = document.getElementById("my-input");
+const input = document.getElementById('my-input');
 attachSurmiser(input);
 ```
+
+### 3. Remote Provider (AI-Powered)
+
+Built-in support for remote API providers - perfect for AI-powered suggestions!
+
+```tsx
+import { SurmiserProvider } from 'surmiser/react';
+import { localPredictive } from 'surmiser';
+
+function App() {
+  return (
+    <SurmiserProvider
+      providers={[
+        // AI-first with high priority
+        {
+          id: 'openai',
+          endpoint: '/api/suggest',
+          priority: 100,
+        },
+      ]}
+    >
+      <SurmiserInput placeholder="AI-powered suggestions..." />
+    </SurmiserProvider>
+  );
+}
+```
+
+**Your API endpoint** receives:
+
+```json
+{
+  "inputValue": "hello",
+  "cursorPosition": 5,
+  "meta": {},
+  "prompt": "..."
+}
+```
+
+And responds:
+
+```json
+{
+  "suggestion": " world",
+  "confidence": 0.9
+}
+```
+
+Mix and match local + remote providers with automatic fallback!

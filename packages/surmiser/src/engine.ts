@@ -65,9 +65,9 @@ export class SurmiserEngine {
 
         if (
           suggestion &&
-          suggestion.confidence >= (this.options.minConfidence || 70)
+          suggestion.confidence >= (this.options.minConfidence || 0.7)
         ) {
-          if (suggestion.confidence >= 95) {
+          if (suggestion.confidence >= 0.95) {
             this.currentSuggestion = suggestion;
             this.options.onSuggestion?.(suggestion);
             return;

@@ -34,7 +34,6 @@ Surmiser is a minimal, composable building block that works with your existing s
 - **Cross-Browser**: Tested on Chrome, Firefox, Safari, Edge, and mobile browsers
 - **TypeScript**: Full type definitions included
 
-
 ## Installation
 
 ```bash
@@ -50,7 +49,7 @@ Surmiser provides a drop-in component and a hook for maximum flexibility. **No p
 **The Easy Way (`SurmiserInput`)**
 
 ```tsx
-import { SurmiserInput } from "surmiser/react";
+import { SurmiserInput } from 'surmiser/react';
 
 function App() {
   return <SurmiserInput placeholder="Type something..." />;
@@ -62,8 +61,8 @@ function App() {
 Integrates with existing UI libraries like Shadcn, MUI, or Chakra.
 
 ```tsx
-import { useSurmiser } from "surmiser/react";
-import { Input } from "@/components/ui/input"; // Your custom component
+import { useSurmiser } from 'surmiser/react';
+import { Input } from '@/components/ui/input'; // Your custom component
 
 function MyCustomInput() {
   // 1. Get the attachRef
@@ -79,11 +78,11 @@ function MyCustomInput() {
 Want to share settings across multiple inputs? Use the optional `<SurmiserProvider>`:
 
 ```tsx
-import { SurmiserProvider, SurmiserInput } from "surmiser/react";
+import { SurmiserProvider, SurmiserInput } from 'surmiser/react';
 
 function App() {
   return (
-    <SurmiserProvider corpus={["shared", "phrases"]}>
+    <SurmiserProvider corpus={['shared', 'phrases']}>
       <SurmiserInput placeholder="Input 1..." />
       <SurmiserInput placeholder="Input 2..." />
     </SurmiserProvider>
@@ -96,9 +95,9 @@ function App() {
 Works with any standard HTML input element.
 
 ```js
-import { attachSurmiser } from "surmiser";
+import { attachSurmiser } from 'surmiser';
 
-const input = document.getElementById("my-input");
+const input = document.getElementById('my-input');
 attachSurmiser(input);
 ```
 
@@ -133,7 +132,7 @@ const DEV_TERMS = [
 Surmiser is built on a provider architecture. Swap the local predictive engine for custom logic:
 
 ```tsx
-import type { Provider } from "surmiser";
+import type { Provider } from 'surmiser';
 
 const apiProvider: Provider = {
   priority: 15,
@@ -169,7 +168,7 @@ Use cases:
 3. Try lowering `minConfidence` to 0 for debugging
 
 ```tsx
-<SurmiserInput minConfidence={0} onAccept={(s) => console.log(s)} />
+<SurmiserInput minConfidence={0} onAccept={s => console.log(s)} />
 ```
 
 ## Browser Support

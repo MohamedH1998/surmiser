@@ -1,0 +1,8 @@
+dist
+node_modules
+coverage
+.husky
+playwright-report
+test-results
+pnpm-lock.yaml
+next

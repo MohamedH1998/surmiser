@@ -41,8 +41,8 @@ const customProvider = {
   priority: 100,
   suggest: async () => {
     return {
-      text: 'custom provider suggestion',
-      confidence: 100,
+      completion: 'custom provider suggestion',
+      confidence: 1,
       providerId: 'custom',
     };
   },
@@ -51,7 +51,7 @@ const customProvider = {
 const customProviderProps = {
   providers: customProvider,
   debounceMs: 100,
-  minConfidence: 70,
+  minConfidence: 0.7,
 };
 
 /* 1. Vanilla JS attach() - default corpus */
@@ -109,12 +109,12 @@ const VanillaWithOptions = () => {
     const detach = attachSurmiser(inputRef.current, {
       corpus: SPORTS,
       debounceMs: 100,
-      minConfidence: 70,
+      minConfidence: 0.7,
       onSuggestion: s => {
-        setLog(s ? `Suggestion: "${s.text}"` : 'Cleared');
+        setLog(s ? `Suggestion: "${s.completion}"` : 'Cleared');
       },
       onAccept: s => {
-        setLog(`Accepted: "${s.text}"`);
+        setLog(`Accepted: "${s.completion}"`);
       },
     });
 
@@ -356,13 +356,13 @@ const ConfigDebounceHook = () => {
 const ConfigMinConfidence = () => {
   const { attachRef } = useSurmiser({
     corpus: GREETINGS,
-    minConfidence: 50,
+    minConfidence: 0.5,
   });
 
   return (
     <Input
       ref={attachRef}
-      placeholder="Type 'hello'... (90% min confidence)"
+      placeholder="Type 'hello'... (0.9 min confidence)"
       className="w-full p-3 border rounded"
     />
   );
@@ -373,10 +373,10 @@ const highPriorityProvider = {
   id: 'high-priority',
   priority: 100,
   suggest: async (ctx: SuggestionContext) => {
-    if (ctx.text.startsWith('urgent')) {
+    if (ctx.inputValue.startsWith('urgent')) {
       return {
-        text: ' - handled by high priority provider!',
-        confidence: 95,
+        completion: ' - handled by high priority provider!',
+        confidence: 0.95,
         providerId: 'high-priority',
       };
     }
@@ -388,10 +388,10 @@ const lowPriorityProvider = {
   id: 'low-priority',
   priority: 10,
   suggest: async (ctx: SuggestionContext) => {
-    if (ctx.text.startsWith('urgent')) {
+    if (ctx.inputValue.startsWith('urgent')) {
       return {
-        text: ' - handled by low priority (will be ignored)',
-        confidence: 90,
+        completion: ' - handled by low priority (will be ignored)',
+        confidence: 0.9,
         providerId: 'low-priority',
       };
     }
@@ -422,7 +422,9 @@ const WithOnSuggestion = () => {
     onSuggestion: (s: Suggestion | null) => {
       setLog(prev => [
         ...prev.slice(-4),
-        s ? `Suggestion: "${s.text}" (${s.confidence}%)` : 'Suggestion cleared',
+        s
+          ? `Suggestion: "${s.completion}" (${s.confidence})`
+          : 'Suggestion cleared',
       ]);
     },
   });
@@ -450,7 +452,7 @@ const WithOnAccept = () => {
   const { attachRef } = useSurmiser({
     corpus: DEV_TERMS,
     onAccept: (s: Suggestion) => {
-      setAccepted(prev => [...prev, s.text]);
+      setAccepted(prev => [...prev, s.completion]);
     },
   });
 
@@ -506,7 +508,7 @@ const SurmiserInputConfigOverride = () => {
       value={value}
       onChange={e => setValue(e.target.value)}
       debounceMs={100}
-      minConfidence={80}
+      minConfidence={0.8}
       placeholder="Type 'feature'... (overrides provider config)"
       className="w-full p-3 border rounded"
     />
@@ -527,10 +529,10 @@ const SurmiserInputMultipleProviders = () => {
           id: 'custom-inline',
           priority: 50,
           suggest: async (ctx: SuggestionContext) => {
-            if (ctx.text.startsWith('inline')) {
+            if (ctx.inputValue.startsWith('inline')) {
               return {
-                text: ' provider suggestion!',
-                confidence: 85,
+                completion: ' provider suggestion!',
+                confidence: 0.85,
                 providerId: 'custom-inline',
               };
             }
@@ -818,7 +820,7 @@ function App() {
             <div>
               <h3 className="font-medium mb-1">Hook-level minConfidence</h3>
               <p className="text-sm text-gray-500 mb-2">
-                90% min confidence (vs 75% provider default)
+                0.9 min confidence (vs 0.75 provider default)
               </p>
               <ConfigMinConfidence />
             </div>

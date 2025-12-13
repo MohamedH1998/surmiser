@@ -10,7 +10,7 @@ describe('Segment Boundary Tracking', () => {
     let ctx = buildContext('ta', 2);
     let result = await provider.suggest(ctx, new AbortController().signal);
     expect(result).not.toBeNull();
-    expect(result?.text).toBe('ke care');
+    expect(result?.completion).toBe('ke care');
 
     provider.markSegmentBoundary?.(2);
 
@@ -19,7 +19,7 @@ describe('Segment Boundary Tracking', () => {
     result = await provider.suggest(ctx, new AbortController().signal);
 
     expect(result).not.toBeNull();
-    expect(result?.text).toBe('nk you');
+    expect(result?.completion).toBe('nk you');
   });
 
   it('should handle multiple suggestions in same input', async () => {
@@ -34,7 +34,7 @@ describe('Segment Boundary Tracking', () => {
     ctx = buildContext('take care. app', 14);
     result = await provider.suggest(ctx, new AbortController().signal);
     expect(result).not.toBeNull();
-    expect(result?.text).toBe('reciate it');
+    expect(result?.completion).toBe('reciate it');
 
     // Accept -> "take care. appreciate it"
     provider.markSegmentBoundary?.(4);
@@ -43,7 +43,7 @@ describe('Segment Boundary Tracking', () => {
     ctx = buildContext('take care. appreciate it. sou', 29);
     result = await provider.suggest(ctx, new AbortController().signal);
     expect(result).not.toBeNull();
-    expect(result?.text).toBe('nds good');
+    expect(result?.completion).toBe('nds good');
   });
 
   it('should reset segment on punctuation', async () => {
@@ -60,7 +60,7 @@ describe('Segment Boundary Tracking', () => {
     result = await provider.suggest(ctx, new AbortController().signal);
 
     expect(result).not.toBeNull();
-    expect(result?.text).toBe('ank you');
+    expect(result?.completion).toBe('ank you');
   });
 
   it('should respect context window limit', async () => {
@@ -88,6 +88,6 @@ describe('Segment Boundary Tracking', () => {
     ctx = buildContext('weird! app', 10);
     result = await provider.suggest(ctx, new AbortController().signal);
     expect(result).not.toBeNull();
-    expect(result?.text).toBe('reciate it');
+    expect(result?.completion).toBe('reciate it');
   });
 });

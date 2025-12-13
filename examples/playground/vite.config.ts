@@ -20,8 +20,8 @@ const mockApiPlugin = (): Plugin => ({
       req.on('end', () => {
         setTimeout(() => {
           try {
-            const { text } = JSON.parse(body);
-            const prefix = text || '';
+            const { inputValue } = JSON.parse(body);
+            const prefix = inputValue || '';
 
             const suggestion = prefix.endsWith('hello') ? ' world' : '';
 
@@ -29,7 +29,7 @@ const mockApiPlugin = (): Plugin => ({
             res.end(
               JSON.stringify({
                 suggestion,
-                confidence: suggestion ? 90 : 0,
+                confidence: suggestion ? 0.9 : 0,
               })
             );
             // eslint-disable-next-line @typescript-eslint/no-unused-vars

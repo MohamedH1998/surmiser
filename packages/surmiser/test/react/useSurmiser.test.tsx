@@ -30,7 +30,7 @@ describe('useSurmiser', () => {
 
   it('merges context configuration with local options', () => {
     const customWrapper = ({ children }: { children: React.ReactNode }) => (
-      <SurmiserProvider minConfidence={70}>{children}</SurmiserProvider>
+      <SurmiserProvider minConfidence={0.7}>{children}</SurmiserProvider>
     );
 
     const { result } = renderHook(

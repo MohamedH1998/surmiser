@@ -22,7 +22,7 @@ describe('Concurrent Usage Stress Test', () => {
         debounceMs: 10,
         onSuggestion: suggestion => {
           expect(input.value).toBe(`uni`);
-          expect(suggestion?.text).toBe(`que${i}`);
+          expect(suggestion?.completion).toBe(`que${i}`);
         },
       });
       cleanups.push(cleanup);
@@ -72,7 +72,7 @@ describe('Concurrent Usage Stress Test', () => {
     // Verify only callback 10 received the specific suggestion
     expect(callbacks.get(targetIndex)).toHaveBeenCalled();
     const suggestion = callbacks.get(targetIndex).mock.calls[0][0];
-    expect(suggestion.text).toBe(`que${targetIndex}`);
+    expect(suggestion.completion).toBe(`que${targetIndex}`);
 
     // Verify others were not called (or called with null/initially but not with this suggestion)
     expect(callbacks.get(targetIndex + 1)).not.toHaveBeenCalled();
